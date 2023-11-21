@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/aiteung/atdb"
+	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -86,6 +87,33 @@ func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error 
 	}
 
 	return nil
+}
+
+func CreateAdmin(mongoconn *mongo.Database, collection string, userdata Admin) interface{} {
+	// Hash the password before storing it
+	hashedPassword, err := HashPassword(userdata.Password)
+	if err != nil {
+		return err
+	}
+	privateKey, publicKey := watoken.GenerateKey()
+	userid := userdata.Username
+	tokenstring, err := watoken.Encode(userid, privateKey)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(tokenstring)
+	// decode token to get userid
+	useridstring := watoken.DecodeGetId(publicKey, tokenstring)
+	if useridstring == "" {
+		fmt.Println("expire token")
+	}
+	fmt.Println(useridstring)
+	userdata.Private = privateKey
+	userdata.Public = publicKey
+	userdata.Password = hashedPassword
+
+	// Insert the user data into the database
+	return atdb.InsertOneDoc(mongoconn, collection, userdata)
 }
 
 // catalog
