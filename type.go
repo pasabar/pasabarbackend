@@ -57,7 +57,7 @@ type Tour struct {
 	ID          int       `json:"id" bson:"id"`
 	Title       string    `json:"title" bson:"title"`
 	Description string    `json:"description" bson:"description"`
-	Cari        string    `json:"cari" bson:"cari"`
+	Search      string    `json:"cari" bson:"cari"`
 	Tanggal     string    `json:"tanggal" bson:"tanggal"`
 	Image       string    `json:"image" bson:"image"`
 	Harga       int       `json:"harga" bson:"harga"`
