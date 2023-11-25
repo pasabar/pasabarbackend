@@ -66,7 +66,7 @@ type Tour struct {
 	Status      bool      `json:"status" bson:"status"`
 }
 
-type HotelResto struct {
+type Hotel struct {
 	ID          int       `json:"id" bson:"id"`
 	Title       string    `json:"title" bson:"title"`
 	Description string    `json:"description" bson:"description"`
