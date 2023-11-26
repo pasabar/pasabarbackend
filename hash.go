@@ -11,3 +11,12 @@ func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
+
+func CreateResponse(status bool, message string, data interface{}) Response {
+	response := Response{
+		Status:  status,
+		Message: message,
+		Data:    data,
+	}
+	return response
+}
