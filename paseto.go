@@ -104,7 +104,7 @@ func GCFUpdateCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 }
 
 // get all catalog
-func GCFGetAllCatalog(MONGOCONNSTRINGENV, dbname, collectionname string) string {
+func GCFGetAllCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	datacatalog := GetAllCatalog(mconn, collectionname)
 	if datacatalog != nil {
