@@ -89,6 +89,14 @@ func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error 
 	return nil
 }
 
+func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
+	insertResult, err := db.Collection(collection).InsertOne(context.TODO(), doc)
+	if err != nil {
+		fmt.Printf("InsertOneDoc: %v\n", err)
+	}
+	return insertResult.InsertedID
+}
+
 func CreateAdmin(mongoconn *mongo.Database, collection string, userdata Admin) interface{} {
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.Password)
@@ -114,6 +122,23 @@ func CreateAdmin(mongoconn *mongo.Database, collection string, userdata Admin) i
 
 	// Insert the user data into the database
 	return atdb.InsertOneDoc(mongoconn, collection, userdata)
+}
+
+func GetConnectionMongo(MongoString, dbname string) *mongo.Database {
+	MongoInfo := atdb.DBInfo{
+		DBString: os.Getenv(MongoString),
+		DBName:   dbname,
+	}
+	conn := atdb.MongoConnect(MongoInfo)
+	return conn
+}
+
+func InsertAdmindata(MongoConn *mongo.Database, username, role, password string) (InsertedID interface{}) {
+	req := new(Admin)
+	req.Username = username
+	req.Password = password
+	req.Role = role
+	return InsertSatuDoc(MongoConn, "admin", req)
 }
 
 // catalog
