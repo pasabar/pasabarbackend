@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"aidanwoods.dev/go-paseto"
+	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -50,6 +52,57 @@ func GenerateKey() (privateKey, publicKey string) {
 func GCFReturnStruct(DataStuct any) string {
 	jsondata, _ := json.Marshal(DataStuct)
 	return string(jsondata)
+}
+
+// <--- ini Login & Register Admin --->
+func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
+	var resp Credential
+	mconn := SetConnection(MongoEnv, dbname)
+	var datauser Admin
+	err := json.NewDecoder(r.Body).Decode(&datauser)
+	if err != nil {
+		resp.Message = "error parsing application/json: " + err.Error()
+	} else {
+		if IsPasswordValid(mconn, Colname, datauser) {
+			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(Privatekey))
+			if err != nil {
+				resp.Message = "Gagal Encode Token : " + err.Error()
+			} else {
+				resp.Status = true
+				resp.Message = "Selamat Datang SUPERADMIN"
+				resp.Token = tokenstring
+			}
+		} else {
+			resp.Message = "Password Salah"
+		}
+	}
+	return GCFReturnStruct(resp)
+}
+
+func ReturnStringStruct(Data any) string {
+	jsonee, _ := json.Marshal(Data)
+	return string(jsonee)
+}
+
+func Register(Mongoenv, dbname string, r *http.Request) string {
+	resp := new(Credential)
+	userdata := new(Admin)
+	resp.Status = false
+	conn := GetConnectionMongo(Mongoenv, dbname)
+	err := json.NewDecoder(r.Body).Decode(&userdata)
+	if err != nil {
+		resp.Message = "error parsing application/json: " + err.Error()
+	} else {
+		resp.Status = true
+		hash, err := HashPassword(userdata.Password)
+		if err != nil {
+			resp.Message = "Gagal Hash Password" + err.Error()
+		}
+		InsertAdmindata(conn, userdata.Username, userdata.Role, hash)
+		resp.Message = "Berhasil Input data"
+	}
+	response := ReturnStringStruct(resp)
+	return response
 }
 
 // <--- ini catalog --->
