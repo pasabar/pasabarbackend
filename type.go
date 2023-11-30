@@ -7,10 +7,9 @@ import (
 )
 
 type Admin struct {
-	Username string `json:"username" bson:"username"`
+	Email    string `json:"email" bson:"email"`
 	Password string `json:"password" bson:"password"`
 	Role     string `json:"role,omitempty" bson:"role,omitempty"`
-	Email    string `bson:"email,omitempty" json:"email,omitempty"`
 	Token    string `json:"token,omitempty" bson:"token,omitempty"`
 	Private  string `json:"private,omitempty" bson:"private,omitempty"`
 	Public   string `json:"public,omitempty" bson:"public,omitempty"`
