@@ -2,69 +2,24 @@ package pasabarbackend
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
-	"time"
 
-	"aidanwoods.dev/go-paseto"
 	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-func Encode(id primitive.ObjectID, role, privateKey string) (string, error) {
-	token := paseto.NewToken()
-	token.SetIssuedAt(time.Now())
-	token.SetNotBefore(time.Now())
-	token.SetExpiration(time.Now().Add(2 * time.Hour))
-	token.Set("id", id)
-	token.SetString("role", role)
-	secretKey, err := paseto.NewV4AsymmetricSecretKeyFromHex(privateKey)
-	return token.V4Sign(secretKey, nil), err
-}
-
-func Decode(publicKey string, tokenstring string) (payload Payload, err error) {
-	var token *paseto.Token
-	var pubKey paseto.V4AsymmetricPublicKey
-	pubKey, err = paseto.NewV4AsymmetricPublicKeyFromHex(publicKey) // this wil fail if given key in an invalid format
-	if err != nil {
-		fmt.Println("Decode NewV4AsymmetricPublicKeyFromHex : ", err)
-	}
-	parser := paseto.NewParser()                                // only used because this example token has expired, use NewParser() (which checks expiry by default)
-	token, err = parser.ParseV4Public(pubKey, tokenstring, nil) // this will fail if parsing failes, cryptographic checks fail, or validation rules fail
-	if err != nil {
-		fmt.Println("Decode ParseV4Public : ", err)
-	} else {
-		json.Unmarshal(token.ClaimsJSON(), &payload)
-	}
-	return payload, err
-}
-
-func GenerateKey() (privateKey, publicKey string) {
-	secretKey := paseto.NewV4AsymmetricSecretKey() // don't share this!!!
-	publicKey = secretKey.Public().ExportHex()     // DO share this one
-	privateKey = secretKey.ExportHex()
-	return privateKey, publicKey
-}
-
-// return struct
-func GCFReturnStruct(DataStuct any) string {
-	jsondata, _ := json.Marshal(DataStuct)
-	return string(jsondata)
-}
 
 // <--- ini Login & Register Admin --->
 func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
 	var resp Credential
 	mconn := SetConnection(MongoEnv, dbname)
-	var datauser Admin
-	err := json.NewDecoder(r.Body).Decode(&datauser)
+	var dataadmin Admin
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
 	if err != nil {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
-		if IsPasswordValid(mconn, Colname, datauser) {
-			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(Privatekey))
+		if IsPasswordValid(mconn, Colname, dataadmin) {
+			tokenstring, err := watoken.Encode(dataadmin.Email, os.Getenv(Privatekey))
 			if err != nil {
 				resp.Message = "Gagal Encode Token : " + err.Error()
 			} else {
@@ -79,6 +34,12 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 	return GCFReturnStruct(resp)
 }
 
+// return struct
+func GCFReturnStruct(DataStuct any) string {
+	jsondata, _ := json.Marshal(DataStuct)
+	return string(jsondata)
+}
+
 func ReturnStringStruct(Data any) string {
 	jsonee, _ := json.Marshal(Data)
 	return string(jsonee)
@@ -86,19 +47,19 @@ func ReturnStringStruct(Data any) string {
 
 func Register(Mongoenv, dbname string, r *http.Request) string {
 	resp := new(Credential)
-	userdata := new(Admin)
+	admindata := new(Admin)
 	resp.Status = false
-	conn := GetConnectionMongo(Mongoenv, dbname)
-	err := json.NewDecoder(r.Body).Decode(&userdata)
+	conn := SetConnection(Mongoenv, dbname)
+	err := json.NewDecoder(r.Body).Decode(&admindata)
 	if err != nil {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
 		resp.Status = true
-		hash, err := HashPassword(userdata.Password)
+		hash, err := HashPass(admindata.Password)
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
-		InsertAdmindata(conn, userdata.Username, userdata.Role, hash)
+		InsertAdmindata(conn, admindata.Email, admindata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}
 	response := ReturnStringStruct(resp)
@@ -108,52 +69,119 @@ func Register(Mongoenv, dbname string, r *http.Request) string {
 // <--- ini catalog --->
 
 // catalog post
-func GCFCreateCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func GCFInsertCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcatalog string, r *http.Request) string {
+	var response Credential
+	response.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var datacatalog Catalog
-	err := json.NewDecoder(r.Body).Decode(&datacatalog)
-	if err != nil {
-		return err.Error()
-	}
-	if err := CreateCatalog(mconn, collectionname, datacatalog); err != nil {
-		return GCFReturnStruct(CreateResponse(true, "Success Create Catalog", datacatalog))
+	var admindata Admin
+	gettoken := r.Header.Get("token")
+	if gettoken == "" {
+		response.Message = "Missing token in headers"
 	} else {
-		return GCFReturnStruct(CreateResponse(false, "Failed Create Catalog", datacatalog))
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Invalid token"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datacatalog Catalog
+				err := json.NewDecoder(r.Body).Decode(&datacatalog)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					insertCatalog(mconn, collcatalog, Catalog{
+						Nomorid:     datacatalog.Nomorid,
+						Title:       datacatalog.Title,
+						Description: datacatalog.Description,
+						Image:       datacatalog.Image,
+						Status:      datacatalog.Status,
+					})
+					response.Status = true
+					response.Message = "Berhasil Insert Catalog"
+				}
+			} else {
+				response.Message = "Anda tidak bisa Insert data karena bukan admin"
+			}
+		}
 	}
+	return GCFReturnStruct(response)
 }
 
 // delete catalog
-func GCFDeleteCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func GCFDeleteCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcatalog string, r *http.Request) string {
+
+	var respon Credential
+	respon.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
 
-	var datacatalog Catalog
-	err := json.NewDecoder(r.Body).Decode(&datacatalog)
-	if err != nil {
-		return err.Error()
-	}
-
-	if err := DeleteCatalog(mconn, collectionname, datacatalog); err != nil {
-		return GCFReturnStruct(CreateResponse(true, "Success Delete Catalog", datacatalog))
+	gettoken := r.Header.Get("token")
+	if gettoken == "" {
+		respon.Message = "Missing token in headers"
 	} else {
-		return GCFReturnStruct(CreateResponse(false, "Failed Delete Catalog", datacatalog))
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			respon.Message = "Invalid token"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datacatalog Catalog
+				err := json.NewDecoder(r.Body).Decode(&datacatalog)
+				if err != nil {
+					respon.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					DeleteCatalog(mconn, collcatalog, datacatalog)
+					respon.Status = true
+					respon.Message = "Berhasil Delete Catalog"
+				}
+			} else {
+				respon.Message = "Anda tidak bisa Delete data karena bukan admin"
+			}
+		}
 	}
+	return GCFReturnStruct(respon)
 }
 
 // update catalog
-func GCFUpdateCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func GCFUpdateCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcatalog string, r *http.Request) string {
+	var response Credential
+	response.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
 
-	var datacatalog Catalog
-	err := json.NewDecoder(r.Body).Decode(&datacatalog)
-	if err != nil {
-		return err.Error()
-	}
-
-	if err := UpdatedCatalog(mconn, collectionname, bson.M{"id": datacatalog.ID}, datacatalog); err != nil {
-		return GCFReturnStruct(CreateResponse(true, "Success Update Catalog", datacatalog))
+	gettoken := r.Header.Get("token")
+	if gettoken == "" {
+		response.Message = "Missing token in Headers"
 	} else {
-		return GCFReturnStruct(CreateResponse(false, "Failed Update Catalog", datacatalog))
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Invalid token"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datacatalog Catalog
+				err := json.NewDecoder(r.Body).Decode(&datacatalog)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+
+				} else {
+					UpdatedCatalog(mconn, collcatalog, bson.M{"id": datacatalog.ID}, datacatalog)
+					response.Status = true
+					response.Message = "Berhasil Update Catalog"
+					GCFReturnStruct(CreateResponse(true, "Success Update Catalog", datacatalog))
+				}
+			} else {
+				response.Message = "Anda tidak bisa Update data karena bukan admin"
+			}
+
+		}
 	}
+	return GCFReturnStruct(response)
 }
 
 // get all catalog
