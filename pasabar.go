@@ -10,32 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// mongo
-func MongoConnect(MongoString, dbname string) *mongo.Database {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv(MongoString)))
-	if err != nil {
-		fmt.Printf("MongoConnect: %v\n", err)
-	}
-	return client.Database(dbname)
-}
-
-func SetConnection(MONGOCONNSTRINGENV, dbname string) *mongo.Database {
-	var DBmongoinfo = atdb.DBInfo{
-		// DBString: "mongodb+srv://ryaasishlah123:ryaas123@ryaas.x1atjad.mongodb.net/", //os.Getenv(MONGOCONNSTRINGENV),
-		DBString: os.Getenv(MONGOCONNSTRINGENV),
-		DBName:   dbname,
-	}
-	return atdb.MongoConnect(DBmongoinfo)
-}
-
-func IsPasswordValid(mongoconn *mongo.Database, collection string, userdata Admin) bool {
-	filter := bson.M{"username": userdata.Username}
-	res := atdb.GetOneDoc[Admin](mongoconn, collection, filter)
-	return CheckPasswordHash(userdata.Password, res.Password)
-}
 
 // crud
 func GetAllDocs(db *mongo.Database, col string, docs interface{}) interface{} {
@@ -50,15 +25,6 @@ func GetAllDocs(db *mongo.Database, col string, docs interface{}) interface{} {
 		return err
 	}
 	return docs
-}
-
-func InsertOneDoc(db *mongo.Database, col string, doc interface{}) (insertedID primitive.ObjectID, err error) {
-	result, err := db.Collection(col).InsertOne(context.Background(), doc)
-	if err != nil {
-		return insertedID, fmt.Errorf("kesalahan server : insert")
-	}
-	insertedID = result.InsertedID.(primitive.ObjectID)
-	return insertedID, nil
 }
 
 func UpdateOneDoc(id primitive.ObjectID, db *mongo.Database, col string, doc interface{}) (err error) {
@@ -89,56 +55,78 @@ func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error 
 	return nil
 }
 
-func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
-	insertResult, err := db.Collection(collection).InsertOne(context.TODO(), doc)
+// admin
+func CreateNewAdminRole(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
+	// Hash the password before storing it
+	hashedPassword, err := HashPass(admindata.Password)
 	if err != nil {
-		fmt.Printf("InsertOneDoc: %v\n", err)
+		return err
 	}
-	return insertResult.InsertedID
+	admindata.Password = hashedPassword
+
+	// Insert the admin data into the database
+	return atdb.InsertOneDoc(mongoconn, collection, admindata)
 }
 
-func CreateAdmin(mongoconn *mongo.Database, collection string, userdata Admin) interface{} {
+func CreateAdminAndAddToken(privateKeyEnv string, mongoconn *mongo.Database, collection string, admindata Admin) error {
 	// Hash the password before storing it
-	hashedPassword, err := HashPassword(userdata.Password)
+	hashedPassword, err := HashPass(admindata.Password)
+	if err != nil {
+		return err
+	}
+	admindata.Password = hashedPassword
+
+	// Create a token for the admin
+	tokenstring, err := watoken.Encode(admindata.Email, os.Getenv(privateKeyEnv))
+	if err != nil {
+		return err
+	}
+
+	admindata.Token = tokenstring
+
+	// Insert the admin data into the MongoDB collection
+	if err := atdb.InsertOneDoc(mongoconn, collection, admindata.Email); err != nil {
+		return nil // Mengembalikan kesalahan yang dikembalikan oleh atdb.InsertOneDoc
+	}
+
+	// Return nil to indicate success
+	return nil
+}
+
+func CreateResponse(status bool, message string, data interface{}) Response {
+	response := Response{
+		Status:  status,
+		Message: message,
+		Data:    data,
+	}
+	return response
+}
+
+func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
+	// Hash the password before storing it
+	hashedPassword, err := HashPass(admindata.Password)
 	if err != nil {
 		return err
 	}
 	privateKey, publicKey := watoken.GenerateKey()
-	userid := userdata.Username
-	tokenstring, err := watoken.Encode(userid, privateKey)
+	adminid := admindata.Email
+	tokenstring, err := watoken.Encode(adminid, privateKey)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println(tokenstring)
-	// decode token to get userid
-	useridstring := watoken.DecodeGetId(publicKey, tokenstring)
-	if useridstring == "" {
+	// decode token to get adminid
+	adminidstring := watoken.DecodeGetId(publicKey, tokenstring)
+	if adminidstring == "" {
 		fmt.Println("expire token")
 	}
-	fmt.Println(useridstring)
-	userdata.Private = privateKey
-	userdata.Public = publicKey
-	userdata.Password = hashedPassword
+	fmt.Println(adminidstring)
+	admindata.Private = privateKey
+	admindata.Public = publicKey
+	admindata.Password = hashedPassword
 
-	// Insert the user data into the database
-	return atdb.InsertOneDoc(mongoconn, collection, userdata)
-}
-
-func GetConnectionMongo(MongoString, dbname string) *mongo.Database {
-	MongoInfo := atdb.DBInfo{
-		DBString: os.Getenv(MongoString),
-		DBName:   dbname,
-	}
-	conn := atdb.MongoConnect(MongoInfo)
-	return conn
-}
-
-func InsertAdmindata(MongoConn *mongo.Database, username, role, password string) (InsertedID interface{}) {
-	req := new(Admin)
-	req.Username = username
-	req.Password = password
-	req.Role = role
-	return InsertSatuDoc(MongoConn, "admin", req)
+	// Insert the admin data into the database
+	return atdb.InsertOneDoc(mongoconn, collection, admindata)
 }
 
 // catalog
@@ -147,7 +135,7 @@ func CreateNewCatalog(mongoconn *mongo.Database, collection string, catalogdata 
 }
 
 // catalog function
-func CreateCatalog(mongoconn *mongo.Database, collection string, catalogdata Catalog) interface{} {
+func insertCatalog(mongoconn *mongo.Database, collection string, catalogdata Catalog) interface{} {
 	return atdb.InsertOneDoc(mongoconn, collection, catalogdata)
 }
 
@@ -157,8 +145,8 @@ func DeleteCatalog(mongoconn *mongo.Database, collection string, catalogdata Cat
 }
 
 func UpdatedCatalog(mongoconn *mongo.Database, collection string, filter bson.M, catalogdata Catalog) interface{} {
-	filter = bson.M{"nomorid": catalogdata.Nomorid}
-	return atdb.ReplaceOneDoc(mongoconn, collection, filter, catalogdata)
+	updatedFilter := bson.M{"nomorid": catalogdata.Nomorid}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, catalogdata)
 }
 
 func GetAllCatalog(mongoconn *mongo.Database, collection string) []Catalog {
