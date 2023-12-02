@@ -212,3 +212,138 @@ func GCFGetAllCatalogID(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Catalog", datacatalog))
 	}
 }
+
+// <--- ini about --->
+
+// about post
+func GCFInsertAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var authdata Admin
+
+	gettoken := r.Header.Get("token")
+
+	if gettoken == "" {
+		response.Message = "Missing token in headers"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		authdata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Invalid token"
+		} else {
+			auth2 := FindAdmin(mconn, colladmin, authdata)
+			if auth2.Role == "admin" {
+
+				var dataabout About
+				err := json.NewDecoder(r.Body).Decode(&dataabout)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					InsertAbout(mconn, collabout, About{
+						ID:          dataabout.ID,
+						Title:       dataabout.Title,
+						Description: dataabout.Description,
+						Image:       dataabout.Image,
+						Status:      dataabout.Status,
+					})
+					response.Status = true
+					response.Message = "Berhasil Insert About"
+				}
+			} else {
+				response.Message = "Anda tidak bisa Insert data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(response)
+
+}
+
+// delete about
+func GCFDeleteAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var authdata Admin
+
+	gettoken := r.Header.Get("token")
+
+	if gettoken == "" {
+		response.Message = "Missing token in headers"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		authdata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Invalid token"
+		} else {
+			auth2 := FindAdmin(mconn, colladmin, authdata)
+			if auth2.Role == "admin" {
+
+				var dataabout About
+				err := json.NewDecoder(r.Body).Decode(&dataabout)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					DeleteAbout(mconn, collabout, dataabout)
+					response.Status = true
+					response.Message = "Berhasil Delete About"
+					CreateResponse(true, "Success Delete About", dataabout)
+				}
+			} else {
+				response.Message = "Anda tidak bisa Delete data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// update about
+func GCFUpdateAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var authdata Admin
+
+	gettoken := r.Header.Get("token")
+
+	if gettoken == "" {
+		response.Message = "Missing token in headers"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		authdata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Invalid token"
+		} else {
+			auth2 := FindAdmin(mconn, colladmin, authdata)
+			if auth2.Role == "admin" {
+				var dataabout About
+				err := json.NewDecoder(r.Body).Decode(&dataabout)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					UpdatedAbout(mconn, collabout, bson.M{"id": dataabout.ID}, dataabout)
+					response.Status = true
+					response.Message = "Berhasil Update Catalog"
+					CreateResponse(true, "Success Update About", dataabout)
+				}
+			} else {
+				response.Message = "Anda tidak bisa Update data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// get all about
+func GCFGetAllAbout(MONGOCONNSTRINGENV, dbname, collectionname string) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	dataabout := GetAllAbout(mconn, collectionname)
+	if dataabout != nil {
+		return GCFReturnStruct(CreateResponse(true, "Berhasil Get All About", dataabout))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Gagal Get All About", dataabout))
+	}
+}
