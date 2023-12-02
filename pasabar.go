@@ -185,3 +185,29 @@ func GetAllAbout(mongoconn *mongo.Database, collection string) []About {
 	about := atdb.GetAllDoc[[]About](mongoconn, collection)
 	return about
 }
+
+// contact function
+
+func CreateContact(mongoconn *mongo.Database, collection string, contactdata Contact) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, contactdata)
+}
+
+func DeleteContact(mongoconn *mongo.Database, collection string, contactdata Contact) interface{} {
+	filter := bson.M{"id": contactdata.ID}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func UpdatedContact(mongoconn *mongo.Database, collection string, filter bson.M, contactdata Contact) interface{} {
+	updatedFilter := bson.M{"id": contactdata.ID}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, contactdata)
+}
+
+func GetAllContact(mongoconn *mongo.Database, collection string) []Contact {
+	contact := atdb.GetAllDoc[[]Contact](mongoconn, collection)
+	return contact
+}
+
+func GetIdContact(mongoconn *mongo.Database, collection string, contactdata Contact) Contact {
+	filter := bson.M{"id": contactdata.ID}
+	return atdb.GetOneDoc[Contact](mongoconn, collection, filter)
+}
