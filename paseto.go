@@ -102,7 +102,7 @@ func GCFInsertCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcata
 					response.Message = "Berhasil Insert Catalog"
 				}
 			} else {
-				response.Message = "Anda tidak bisa Insert data karena bukan admin"
+				response.Message = "Anda tidak dapat Insert data karena bukan admin"
 			}
 		}
 	}
@@ -139,7 +139,7 @@ func GCFDeleteCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcata
 					respon.Message = "Berhasil Delete Catalog"
 				}
 			} else {
-				respon.Message = "Anda tidak bisa Delete data karena bukan admin"
+				respon.Message = "Anda tidak dapat Delete data karena bukan admin"
 			}
 		}
 	}
@@ -176,7 +176,7 @@ func GCFUpdateCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcata
 					GCFReturnStruct(CreateResponse(true, "Success Update Catalog", datacatalog))
 				}
 			} else {
-				response.Message = "Anda tidak bisa Update data karena bukan admin"
+				response.Message = "Anda tidak dapat Update data karena bukan admin"
 			}
 
 		}
@@ -252,7 +252,7 @@ func GCFInsertAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout 
 					response.Message = "Berhasil Insert About"
 				}
 			} else {
-				response.Message = "Anda tidak bisa Insert data karena bukan admin"
+				response.Message = "Anda tidak dapat Insert data karena bukan admin"
 			}
 		}
 	}
@@ -292,7 +292,7 @@ func GCFDeleteAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout 
 					CreateResponse(true, "Success Delete About", dataabout)
 				}
 			} else {
-				response.Message = "Anda tidak bisa Delete data karena bukan admin"
+				response.Message = "Anda tidak dapat Delete data karena bukan admin"
 			}
 		}
 	}
@@ -330,7 +330,7 @@ func GCFUpdateAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout 
 					CreateResponse(true, "Success Update About", dataabout)
 				}
 			} else {
-				response.Message = "Anda tidak bisa Update data karena bukan admin"
+				response.Message = "Anda tidak dapat Update data karena bukan admin"
 			}
 		}
 	}
@@ -387,7 +387,7 @@ func GCFCreateContact(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcont
 					response.Message = "Berhasil Insert Contact"
 				}
 			} else {
-				response.Message = "Anda tidak bisa Insert data karena bukan admin"
+				response.Message = "Anda tidak dapat Insert data karena bukan admin"
 			}
 		}
 	}
@@ -424,7 +424,7 @@ func GCFDeleteContact(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcont
 					response.Message = "Berhasil Delete Contact"
 				}
 			} else {
-				response.Message = "Anda tidak bisa Delete data karena bukan admin"
+				response.Message = "Anda tidak dapat Delete data karena bukan admin"
 			}
 		}
 	}
@@ -461,7 +461,7 @@ func GCFUpdateContact(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcont
 					GCFReturnStruct(CreateResponse(true, "Success Update Product", datacontact))
 				}
 			} else {
-				respon.Message = "Anda tidak bisa Update data karena bukan admin"
+				respon.Message = "Anda tidak dapat Update data karena bukan admin"
 			}
 
 		}
