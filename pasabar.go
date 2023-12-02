@@ -164,3 +164,24 @@ func GetAllCatalogID(mongoconn *mongo.Database, collection string, catalogdata C
 	catalogID := atdb.GetOneDoc[Catalog](mongoconn, collection, filter)
 	return catalogID
 }
+
+// about function
+
+func InsertAbout(mongoconn *mongo.Database, collection string, aboutdata About) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, aboutdata)
+}
+
+func DeleteAbout(mongoconn *mongo.Database, collection string, aboutdata About) interface{} {
+	filter := bson.M{"id": aboutdata.ID}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func UpdatedAbout(mongoconn *mongo.Database, collection string, filter bson.M, aboutdata About) interface{} {
+	updatedFilter := bson.M{"id": aboutdata.ID}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, aboutdata)
+}
+
+func GetAllAbout(mongoconn *mongo.Database, collection string) []About {
+	about := atdb.GetAllDoc[[]About](mongoconn, collection)
+	return about
+}
