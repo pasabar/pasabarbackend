@@ -160,7 +160,6 @@ func GetAllCatalogID(mongoconn *mongo.Database, collection string, catalogdata C
 		"title":       catalogdata.Title,
 		"description": catalogdata.Description,
 		"image":       catalogdata.Image,
-		"status":      catalogdata.Status,
 	}
 	catalogID := atdb.GetOneDoc[Catalog](mongoconn, collection, filter)
 	return catalogID
