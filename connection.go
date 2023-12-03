@@ -14,7 +14,6 @@ import (
 
 func SetConnection(MONGOCONNSTRINGENV, dbname string) *mongo.Database {
 	var DBmongoinfo = atdb.DBInfo{
-		// DBString: "mongodb+srv://ryaasishlah123:ryaas123@ryaas.x1atjad.mongodb.net/", //os.Getenv(MONGOCONNSTRINGENV),
 		DBString: os.Getenv(MONGOCONNSTRINGENV),
 		DBName:   dbname,
 	}
