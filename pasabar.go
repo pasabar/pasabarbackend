@@ -170,6 +170,114 @@ func GetAllCatalogID(mongoconn *mongo.Database, collection string, catalogdata C
 	return catalogID
 }
 
+// wisata function
+func insertWisata(mongoconn *mongo.Database, collection string, wisatadata Wisata) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, wisatadata)
+}
+
+func DeleteWisata(mongoconn *mongo.Database, collection string, wisatadata Wisata) interface{} {
+	filter := bson.M{"nomorid": wisatadata.Nomorid}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func UpdatedWisata(mongoconn *mongo.Database, collection string, filter bson.M, wisatadata Wisata) interface{} {
+	updatedFilter := bson.M{"nomorid": wisatadata.Nomorid}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, wisatadata)
+}
+
+func GetAllWisata(mongoconn *mongo.Database, collection string) []Wisata {
+	wisata := atdb.GetAllDoc[[]Wisata](mongoconn, collection)
+	return wisata
+}
+func GetAllWisatas(MongoConn *mongo.Database, colname string, email string) []Admin {
+	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+	return data
+}
+
+func GetAllWisataID(mongoconn *mongo.Database, collection string, wisatadata Wisata) Wisata {
+	filter := bson.M{
+		"nomorid":     wisatadata.Nomorid,
+		"title":       wisatadata.Title,
+		"description": wisatadata.Description,
+		"lokasi":      wisatadata.Lokasi,
+		"image":       wisatadata.Image,
+	}
+	wisataID := atdb.GetOneDoc[Wisata](mongoconn, collection, filter)
+	return wisataID
+}
+
+// hotel function
+func insertHotel(mongoconn *mongo.Database, collection string, hoteldata Hotel) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, hoteldata)
+}
+
+func DeleteHotel(mongoconn *mongo.Database, collection string, hoteldata Hotel) interface{} {
+	filter := bson.M{"nomorid": hoteldata.Nomorid}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func UpdatedHotel(mongoconn *mongo.Database, collection string, filter bson.M, hoteldata Hotel) interface{} {
+	updatedFilter := bson.M{"nomorid": hoteldata.Nomorid}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, hoteldata)
+}
+
+func GetAllHotel(mongoconn *mongo.Database, collection string) []Hotel {
+	hotel := atdb.GetAllDoc[[]Hotel](mongoconn, collection)
+	return hotel
+}
+func GetAllHotels(MongoConn *mongo.Database, colname string, email string) []Admin {
+	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+	return data
+}
+
+func GetAllHotelID(mongoconn *mongo.Database, collection string, hoteldata Hotel) Hotel {
+	filter := bson.M{
+		"nomorid":     hoteldata.Nomorid,
+		"title":       hoteldata.Title,
+		"description": hoteldata.Description,
+		"lokasi":      hoteldata.Lokasi,
+		"image":       hoteldata.Image,
+	}
+	hotelID := atdb.GetOneDoc[Hotel](mongoconn, collection, filter)
+	return hotelID
+}
+
+// restoran function
+func insertRestoran(mongoconn *mongo.Database, collection string, restorandata Restoran) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, restorandata)
+}
+
+func DeleteRestoran(mongoconn *mongo.Database, collection string, restorandata Restoran) interface{} {
+	filter := bson.M{"nomorid": restorandata.Nomorid}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func UpdatedRestoran(mongoconn *mongo.Database, collection string, filter bson.M, restorandata Restoran) interface{} {
+	updatedFilter := bson.M{"nomorid": restorandata.Nomorid}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, restorandata)
+}
+
+func GetAllRestoran(mongoconn *mongo.Database, collection string) []Restoran {
+	restoran := atdb.GetAllDoc[[]Restoran](mongoconn, collection)
+	return restoran
+}
+func GetAllRestorans(MongoConn *mongo.Database, colname string, email string) []Admin {
+	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+	return data
+}
+
+func GetAllRestoranID(mongoconn *mongo.Database, collection string, restorandata Restoran) Restoran {
+	filter := bson.M{
+		"nomorid":     restorandata.Nomorid,
+		"title":       restorandata.Title,
+		"description": restorandata.Description,
+		"lokasi":      restorandata.Lokasi,
+		"image":       restorandata.Image,
+	}
+	restoranID := atdb.GetOneDoc[Restoran](mongoconn, collection, filter)
+	return restoranID
+}
+
 // about function
 
 func InsertAbout(mongoconn *mongo.Database, collection string, aboutdata About) interface{} {
