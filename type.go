@@ -28,11 +28,12 @@ type Response struct {
 }
 
 type Payload struct {
-	Id   primitive.ObjectID `json:"id"`
-	Role string             `json:"role"`
-	Exp  time.Time          `json:"exp"`
-	Iat  time.Time          `json:"iat"`
-	Nbf  time.Time          `json:"nbf"`
+	Admin   string    `json:"admin"`
+	Catalog string    `json:"catalog"`
+	Role    string    `json:"role"`
+	Exp     time.Time `json:"exp"`
+	Iat     time.Time `json:"iat"`
+	Nbf     time.Time `json:"nbf"`
 }
 
 type Catalog struct {

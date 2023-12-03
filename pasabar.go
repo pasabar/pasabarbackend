@@ -153,6 +153,10 @@ func GetAllCatalog(mongoconn *mongo.Database, collection string) []Catalog {
 	catalog := atdb.GetAllDoc[[]Catalog](mongoconn, collection)
 	return catalog
 }
+func GetAllCatalogs(MongoConn *mongo.Database, colname string, email string) []Admin {
+	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+	return data
+}
 
 func GetAllCatalogID(mongoconn *mongo.Database, collection string, catalogdata Catalog) Catalog {
 	filter := bson.M{

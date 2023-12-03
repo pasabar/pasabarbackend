@@ -233,27 +233,34 @@ func GCFGetAllCatalogs(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcat
 	return GCFReturnStruct(response)
 }
 
-func GCFGetAllCatalogg(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
+// Get All Catalog
+func GetAllDataCatalog(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := SetConnection(MongoEnv, dbname)
 	tokenlogin := r.Header.Get("Login")
 	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
+		req.Status = false
+		req.Message = "Header Login Not Found"
 	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
+		// Dekode token untuk mendapatkan email
+		email, err := DecodeGetCatalog(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "Tidak ada data email: " + tokenlogin
 		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			datacatalog := GetAllCatalog(koneksyen, colname)
-			yas, _ := json.Marshal(datacatalog)
-			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
-			resp.Token = string(yas)
+			// Langsung ambil data admin berdasarkan email
+			dataadmin := GetAllCatalogs(conn, colname, email)
+			if dataadmin == nil {
+				req.Status = false
+				req.Message = "Data Catalog tidak ada"
+			} else {
+				req.Status = true
+				req.Message = "Data Catalog berhasil diambil"
+				req.Data = dataadmin
+			}
 		}
 	}
-	return ReturnStringStruct(resp)
+	return ReturnStringStruct(req)
 }
 
 // get all catalog by id
