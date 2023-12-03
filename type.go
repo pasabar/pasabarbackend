@@ -28,12 +28,15 @@ type Response struct {
 }
 
 type Payload struct {
-	Admin   string    `json:"admin"`
-	Catalog string    `json:"catalog"`
-	Role    string    `json:"role"`
-	Exp     time.Time `json:"exp"`
-	Iat     time.Time `json:"iat"`
-	Nbf     time.Time `json:"nbf"`
+	Admin    string    `json:"admin"`
+	Catalog  string    `json:"catalog"`
+	Wisata   string    `json:"wisata"`
+	Hotel    string    `json:"hotel"`
+	Restoran string    `json:"restoran"`
+	Role     string    `json:"role"`
+	Exp      time.Time `json:"exp"`
+	Iat      time.Time `json:"iat"`
+	Nbf      time.Time `json:"nbf"`
 }
 
 type Crawling struct {
@@ -45,6 +48,36 @@ type Crawling struct {
 }
 
 type Catalog struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	Nomorid     int                `json:"nomorid" bson:"nomorid"`
+	Title       string             `json:"title" bson:"title"`
+	Description string             `json:"description" bson:"description"`
+	Lokasi      string             `json:"lokasi" bson:"lokasi"`
+	Image       string             `json:"image" bson:"image"`
+	Status      bool               `json:"status" bson:"status"`
+}
+
+type Wisata struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	Nomorid     int                `json:"nomorid" bson:"nomorid"`
+	Title       string             `json:"title" bson:"title"`
+	Description string             `json:"description" bson:"description"`
+	Lokasi      string             `json:"lokasi" bson:"lokasi"`
+	Image       string             `json:"image" bson:"image"`
+	Status      bool               `json:"status" bson:"status"`
+}
+
+type Hotel struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	Nomorid     int                `json:"nomorid" bson:"nomorid"`
+	Title       string             `json:"title" bson:"title"`
+	Description string             `json:"description" bson:"description"`
+	Lokasi      string             `json:"lokasi" bson:"lokasi"`
+	Image       string             `json:"image" bson:"image"`
+	Status      bool               `json:"status" bson:"status"`
+}
+
+type Restoran struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" `
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
 	Title       string             `json:"title" bson:"title"`
