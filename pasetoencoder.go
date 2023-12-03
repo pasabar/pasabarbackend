@@ -34,3 +34,27 @@ func DecodeGetCatalog(PublicKey, tokenStr string) (pay string, err error) {
 	}
 	return key.Catalog, nil
 }
+
+func DecodeGetWisata(PublicKey, tokenStr string) (pay string, err error) {
+	key, err := Decoder(PublicKey, tokenStr)
+	if err != nil {
+		fmt.Println("Cannot decode the token", err.Error())
+	}
+	return key.Wisata, nil
+}
+
+func DecodeGetHotel(PublicKey, tokenStr string) (pay string, err error) {
+	key, err := Decoder(PublicKey, tokenStr)
+	if err != nil {
+		fmt.Println("Cannot decode the token", err.Error())
+	}
+	return key.Hotel, nil
+}
+
+func DecodeGetRestoran(PublicKey, tokenStr string) (pay string, err error) {
+	key, err := Decoder(PublicKey, tokenStr)
+	if err != nil {
+		fmt.Println("Cannot decode the token", err.Error())
+	}
+	return key.Restoran, nil
+}
