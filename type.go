@@ -40,6 +40,7 @@ type Catalog struct {
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
 	Title       string             `json:"title" bson:"title"`
 	Description string             `json:"description" bson:"description"`
+	Lokasi      string             `json:"lokasi" bson:"lokasi"`
 	Image       string             `json:"image" bson:"image"`
 	Status      bool               `json:"status" bson:"status"`
 }

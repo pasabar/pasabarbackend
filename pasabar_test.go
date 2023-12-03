@@ -57,6 +57,7 @@ func TestCatalog(t *testing.T) {
 	catalogdata.Nomorid = 1
 	catalogdata.Title = "garut"
 	catalogdata.Description = "keren banget"
+	catalogdata.Lokasi = "disini"
 	catalogdata.Image = "https://images3.alphacoders.com/165/thumb-1920-165265.jpg"
 	CreateNewCatalog(mconn, "catalog", catalogdata)
 }
