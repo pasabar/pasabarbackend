@@ -233,6 +233,29 @@ func GCFGetAllCatalogs(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcat
 	return GCFReturnStruct(response)
 }
 
+func GCFGetAllCatalogg(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+	resp := new(Credential)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		resp.Status = false
+		resp.Message = "Header Login Not Exist"
+	} else {
+		existing := IsExist(tokenlogin, os.Getenv(publickey))
+		if !existing {
+			resp.Status = false
+			resp.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			koneksyen := SetConnection(Mongostring, dbname)
+			datacatalog := GetAllCatalog(koneksyen, colname)
+			yas, _ := json.Marshal(datacatalog)
+			resp.Status = true
+			resp.Message = "Data Berhasil diambil"
+			resp.Token = string(yas)
+		}
+	}
+	return ReturnStringStruct(resp)
+}
+
 // get all catalog by id
 func GCFGetAllCatalogID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
