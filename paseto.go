@@ -74,15 +74,15 @@ func GCFInsertCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcata
 	response.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var admindata Admin
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 	if gettoken == "" {
-		response.Message = "Missing token in headers"
+		response.Message = "Header Login Not Exist"
 	} else {
 		// Process the request with the "Login" token
 		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
 		admindata.Email = checktoken
 		if checktoken == "" {
-			response.Message = "Invalid token"
+			response.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			admin2 := FindAdmin(mconn, colladmin, admindata)
 			if admin2.Role == "admin" {
@@ -118,15 +118,15 @@ func GCFDeleteCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcata
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var admindata Admin
 
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 	if gettoken == "" {
-		respon.Message = "Missing token in headers"
+		respon.Message = "Header Login Not Exist"
 	} else {
 		// Process the request with the "Login" token
 		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
 		admindata.Email = checktoken
 		if checktoken == "" {
-			respon.Message = "Invalid token"
+			respon.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			admin2 := FindAdmin(mconn, colladmin, admindata)
 			if admin2.Role == "admin" {
@@ -154,14 +154,14 @@ func GCFUpdateCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcata
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var admindata Admin
 
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 	if gettoken == "" {
-		response.Message = "Missing token in Headers"
+		response.Message = "Header Login Not Exist"
 	} else {
 		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
 		admindata.Email = checktoken
 		if checktoken == "" {
-			response.Message = "Invalid token"
+			response.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			admin2 := FindAdmin(mconn, colladmin, admindata)
 			if admin2.Role == "admin" {
@@ -196,71 +196,27 @@ func GCFGetAllCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	}
 }
 
-func GCFGetAllCatalogs(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcatalog string, r *http.Request) string {
-	var response Credential
-	response.Status = false
-	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var admindata Admin
-
-	gettoken := r.Header.Get("token")
-	if gettoken == "" {
-		response.Message = "Missing token in Headers"
-	} else {
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
-		admindata.Email = checktoken
-		if checktoken == "" {
-			response.Message = "Invalid token"
-		} else {
-			admin2 := FindAdmin(mconn, colladmin, admindata)
-			if admin2.Role == "admin" {
-				var datacatalog Catalog
-				err := json.NewDecoder(r.Body).Decode(&datacatalog)
-				if err != nil {
-					response.Message = "Error parsing application/json: " + err.Error()
-
-				} else {
-					GetAllCatalog(mconn, collcatalog)
-					response.Status = true
-					response.Message = "Berhasil Ambil data"
-					GCFReturnStruct(CreateResponse(true, "Success Get Catalog", datacatalog))
-				}
-			} else {
-				response.Message = "Anda tidak dapat Get data karena bukan admin"
-			}
-
-		}
-	}
-	return GCFReturnStruct(response)
-}
-
-// Get All Catalog
-func GetAllDataCatalog(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
-	req := new(Response)
-	conn := SetConnection(MongoEnv, dbname)
+func GCFGetAllCatalogg(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+	resp := new(Credential)
 	tokenlogin := r.Header.Get("Login")
 	if tokenlogin == "" {
-		req.Status = false
-		req.Message = "Header Login Not Found"
+		resp.Status = false
+		resp.Message = "Header Login Not Exist"
 	} else {
-		// Dekode token untuk mendapatkan email
-		email, err := DecodeGetCatalog(os.Getenv(PublicKey), tokenlogin)
-		if err != nil {
-			req.Status = false
-			req.Message = "Tidak ada data email: " + tokenlogin
+		existing := IsExist(tokenlogin, os.Getenv(publickey))
+		if !existing {
+			resp.Status = false
+			resp.Message = "Kamu kayaknya belum punya akun"
 		} else {
-			// Langsung ambil data admin berdasarkan email
-			dataadmin := GetAllCatalogs(conn, colname, email)
-			if dataadmin == nil {
-				req.Status = false
-				req.Message = "Data Catalog tidak ada"
-			} else {
-				req.Status = true
-				req.Message = "Data Catalog berhasil diambil"
-				req.Data = dataadmin
-			}
+			koneksyen := SetConnection(Mongostring, dbname)
+			datacatalog := GetAllCatalog(koneksyen, colname)
+			yas, _ := json.Marshal(datacatalog)
+			resp.Status = true
+			resp.Message = "Data Berhasil diambil"
+			resp.Token = string(yas)
 		}
 	}
-	return ReturnStringStruct(req)
+	return ReturnStringStruct(resp)
 }
 
 // get all catalog by id
@@ -290,16 +246,16 @@ func GCFInsertAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout 
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var authdata Admin
 
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 
 	if gettoken == "" {
-		response.Message = "Missing token in headers"
+		response.Message = "Header Login Not Exist"
 	} else {
 		// Process the request with the "Login" token
 		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
 		authdata.Email = checktoken
 		if checktoken == "" {
-			response.Message = "Invalid token"
+			response.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			auth2 := FindAdmin(mconn, colladmin, authdata)
 			if auth2.Role == "admin" {
@@ -335,16 +291,16 @@ func GCFDeleteAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout 
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var authdata Admin
 
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 
 	if gettoken == "" {
-		response.Message = "Missing token in headers"
+		response.Message = "Header Login Not Exist"
 	} else {
 		// Process the request with the "Login" token
 		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
 		authdata.Email = checktoken
 		if checktoken == "" {
-			response.Message = "Invalid token"
+			response.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			auth2 := FindAdmin(mconn, colladmin, authdata)
 			if auth2.Role == "admin" {
@@ -374,16 +330,16 @@ func GCFUpdateAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout 
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var authdata Admin
 
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 
 	if gettoken == "" {
-		response.Message = "Missing token in headers"
+		response.Message = "Header Login Not Exist"
 	} else {
 		// Process the request with the "Login" token
 		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
 		authdata.Email = checktoken
 		if checktoken == "" {
-			response.Message = "Invalid token"
+			response.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			auth2 := FindAdmin(mconn, colladmin, authdata)
 			if auth2.Role == "admin" {
@@ -419,122 +375,19 @@ func GCFGetAllAbout(MONGOCONNSTRINGENV, dbname, collectionname string) string {
 // <--- ini contact --->
 
 // contact post
-func GCFCreateContact(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcontact string, r *http.Request) string {
-	var response Credential
-	response.Status = false
+func GCFInsertContact(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var authdata Admin
-
-	gettoken := r.Header.Get("token")
-
-	if gettoken == "" {
-		response.Message = "Missing token in headers"
-	} else {
-		// Process the request with the "Login" token
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
-		authdata.Email = checktoken
-		if checktoken == "" {
-			response.Message = "Invalid token"
-		} else {
-			auth2 := FindAdmin(mconn, colladmin, authdata)
-			if auth2.Role == "admin" {
-				var datacontact Contact
-				err := json.NewDecoder(r.Body).Decode(&datacontact)
-				if err != nil {
-					response.Message = "Error parsing application/json: " + err.Error()
-				} else {
-					CreateContact(mconn, collcontact, Contact{
-						ID:       datacontact.ID,
-						FullName: datacontact.FullName,
-						Email:    datacontact.Email,
-						Phone:    datacontact.Phone,
-						Message:  datacontact.Message,
-						Status:   datacontact.Status,
-					})
-					response.Status = true
-					response.Message = "Berhasil Insert Contact"
-				}
-			} else {
-				response.Message = "Anda tidak dapat Insert data karena bukan admin"
-			}
-		}
+	var datacontact Contact
+	err := json.NewDecoder(r.Body).Decode(&datacontact)
+	if err != nil {
+		return err.Error()
 	}
-	return GCFReturnStruct(response)
-}
 
-// delete contact
-func GCFDeleteContact(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcontact string, r *http.Request) string {
-	var response Credential
-	response.Status = false
-	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var authdata Admin
-
-	gettoken := r.Header.Get("token")
-
-	if gettoken == "" {
-		response.Message = "Missing token in headers"
+	if err := InsertContact(mconn, collectionname, datacontact); err != nil {
+		return GCFReturnStruct(CreateResponse(true, "Success Create Contact", datacontact))
 	} else {
-		// Process the request with the "Login" token
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
-		authdata.Email = checktoken
-		if checktoken == "" {
-			response.Message = "Invalid token"
-		} else {
-			auth2 := FindAdmin(mconn, colladmin, authdata)
-			if auth2.Role == "admin" {
-				var datacontact Contact
-				err := json.NewDecoder(r.Body).Decode(&datacontact)
-				if err != nil {
-					response.Message = "Error parsing application/json: " + err.Error()
-				} else {
-					DeleteContact(mconn, colladmin, datacontact)
-					response.Status = true
-					response.Message = "Berhasil Delete Contact"
-				}
-			} else {
-				response.Message = "Anda tidak dapat Delete data karena bukan admin"
-			}
-		}
+		return GCFReturnStruct(CreateResponse(false, "Failed Create Contact", datacontact))
 	}
-	return GCFReturnStruct(response)
-}
-
-// update contact
-func GCFUpdateContact(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcontact string, r *http.Request) string {
-	var respon Credential
-	respon.Status = false
-	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var authdata Admin
-
-	gettoken := r.Header.Get("token")
-	if gettoken == "" {
-		respon.Message = "Missing token in headers"
-	} else {
-		// Process the request with the "Login" token
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
-		authdata.Email = checktoken
-		if checktoken == "" {
-			respon.Message = "Invalid token"
-		} else {
-			auth2 := FindAdmin(mconn, colladmin, authdata)
-			if auth2.Role == "admin" {
-				var datacontact Contact
-				err := json.NewDecoder(r.Body).Decode(&datacontact)
-				if err != nil {
-					respon.Message = "Error parsing application/json: " + err.Error()
-				} else {
-					UpdatedContact(mconn, colladmin, bson.M{"id": datacontact.ID}, datacontact)
-					respon.Status = true
-					respon.Message = "Berhasil Updated Contact"
-					GCFReturnStruct(CreateResponse(true, "Success Update Product", datacontact))
-				}
-			} else {
-				respon.Message = "Anda tidak dapat Update data karena bukan admin"
-			}
-
-		}
-	}
-	return GCFReturnStruct(respon)
 }
 
 // get all contact
@@ -545,22 +398,5 @@ func GCFGetAllContact(MONGOCONNSTRINGENV, dbname, collectionname string) string 
 		return GCFReturnStruct(CreateResponse(true, "success Get All Contact", datacontact))
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed Get All Contact", datacontact))
-	}
-}
-
-// get all contact by id
-func GCFGetAllContactID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
-	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var datacontact Contact
-	err := json.NewDecoder(r.Body).Decode(&datacontact)
-	if err != nil {
-		return err.Error()
-	}
-
-	contact := GetIdContact(mconn, collectionname, datacontact)
-	if contact != (Contact{}) {
-		return GCFReturnStruct(CreateResponse(true, "Success: Get ID Contact", datacontact))
-	} else {
-		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Contact", datacontact))
 	}
 }
