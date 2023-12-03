@@ -24,7 +24,7 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 				resp.Message = "Gagal Encode Token : " + err.Error()
 			} else {
 				resp.Status = true
-				resp.Message = "Selamat Datang SUPERADMIN"
+				resp.Message = "Selamat Datang Admin"
 				resp.Token = tokenstring
 			}
 		} else {
@@ -231,7 +231,7 @@ func GetAllDataCatalogs(PublicKey, MongoEnv, dbname, colname string, r *http.Req
 		_, err := DecodeGetCatalog(os.Getenv(PublicKey), tokenlogin)
 		if err != nil {
 			req.Status = false
-			req.Message = "Tidak ada data  " + tokenlogin
+			req.Message = "Data Tersebut tidak ada" + tokenlogin
 		} else {
 			// Langsung ambil data catalog
 			datacatalog := GetAllCatalog(conn, colname)
@@ -263,6 +263,606 @@ func GCFGetAllCatalogID(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 		return GCFReturnStruct(CreateResponse(true, "Success: Get ID Catalog", datacatalog))
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Catalog", datacatalog))
+	}
+}
+
+// <--- ini wisata --->
+
+// wisata post
+func GCFInsertWisata(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collwisata string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datawisata Wisata
+				err := json.NewDecoder(r.Body).Decode(&datawisata)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					insertWisata(mconn, collwisata, Wisata{
+						Nomorid:     datawisata.Nomorid,
+						Title:       datawisata.Title,
+						Description: datawisata.Description,
+						Lokasi:      datawisata.Lokasi,
+						Image:       datawisata.Image,
+						Status:      datawisata.Status,
+					})
+					response.Status = true
+					response.Message = "Berhasil Insert Wisata"
+				}
+			} else {
+				response.Message = "Anda tidak dapat Insert data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// delete wisata
+func GCFDeleteWisata(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collwisata string, r *http.Request) string {
+
+	var respon Credential
+	respon.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		respon.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			respon.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datawisata Wisata
+				err := json.NewDecoder(r.Body).Decode(&datawisata)
+				if err != nil {
+					respon.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					DeleteWisata(mconn, collwisata, datawisata)
+					respon.Status = true
+					respon.Message = "Berhasil Delete Wisata"
+				}
+			} else {
+				respon.Message = "Anda tidak dapat Delete data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(respon)
+}
+
+// update wisata
+func GCFUpdateWisata(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collwisata string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datawisata Wisata
+				err := json.NewDecoder(r.Body).Decode(&datawisata)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+
+				} else {
+					UpdatedWisata(mconn, collwisata, bson.M{"id": datawisata.ID}, datawisata)
+					response.Status = true
+					response.Message = "Berhasil Update Wisata"
+					GCFReturnStruct(CreateResponse(true, "Success Update Wisata", datawisata))
+				}
+			} else {
+				response.Message = "Anda tidak dapat Update data karena bukan admin"
+			}
+
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// get all wisata
+func GCFGetAllWisata(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	datawisata := GetAllWisata(mconn, collectionname)
+	if datawisata != nil {
+		return GCFReturnStruct(CreateResponse(true, "success Get All Wisata", datawisata))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed Get All Wisata", datawisata))
+	}
+}
+
+func GCFGetAllWisataa(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+	resp := new(Credential)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		resp.Status = false
+		resp.Message = "Header Login Not Exist"
+	} else {
+		existing := IsExist(tokenlogin, os.Getenv(publickey))
+		if !existing {
+			resp.Status = false
+			resp.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			koneksyen := SetConnection(Mongostring, dbname)
+			datawisata := GetAllWisata(koneksyen, colname)
+			yas, _ := json.Marshal(datawisata)
+			resp.Status = true
+			resp.Message = "Data Berhasil diambil"
+			resp.Token = string(yas)
+		}
+	}
+	return ReturnStringStruct(resp)
+}
+
+func GetAllDataWisataa(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := SetConnection(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		// Dekode token untuk mendapatkan
+		_, err := DecodeGetWisata(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "Data Tersebut tidak ada" + tokenlogin
+		} else {
+			// Langsung ambil data wisata
+			datawisata := GetAllWisata(conn, colname)
+			if datawisata == nil {
+				req.Status = false
+				req.Message = "Data wisata tidak ada"
+			} else {
+				req.Status = true
+				req.Message = "Data Wisata berhasil diambil"
+				req.Data = datawisata
+			}
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
+// get all wisata by id
+func GCFGetAllWisataID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+
+	var datawisata Wisata
+	err := json.NewDecoder(r.Body).Decode(&datawisata)
+	if err != nil {
+		return err.Error()
+	}
+
+	wisata := GetAllWisataID(mconn, collectionname, datawisata)
+	if wisata != (Wisata{}) {
+		return GCFReturnStruct(CreateResponse(true, "Success: Get ID Wisata", datawisata))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Wisata", datawisata))
+	}
+}
+
+// <--- ini hotel --->
+
+// hotel post
+func GCFInsertHotel(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collhotel string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datahotel Hotel
+				err := json.NewDecoder(r.Body).Decode(&datahotel)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					insertHotel(mconn, collhotel, Hotel{
+						Nomorid:     datahotel.Nomorid,
+						Title:       datahotel.Title,
+						Description: datahotel.Description,
+						Lokasi:      datahotel.Lokasi,
+						Image:       datahotel.Image,
+						Status:      datahotel.Status,
+					})
+					response.Status = true
+					response.Message = "Berhasil Insert Hotel"
+				}
+			} else {
+				response.Message = "Anda tidak dapat Insert data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// delete hotel
+func GCFDeleteHotel(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collhotel string, r *http.Request) string {
+
+	var respon Credential
+	respon.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		respon.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			respon.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datahotel Hotel
+				err := json.NewDecoder(r.Body).Decode(&datahotel)
+				if err != nil {
+					respon.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					DeleteHotel(mconn, collhotel, datahotel)
+					respon.Status = true
+					respon.Message = "Berhasil Delete Hotel"
+				}
+			} else {
+				respon.Message = "Anda tidak dapat Delete data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(respon)
+}
+
+// update hotel
+func GCFUpdateHotel(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collhotel string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datahotel Hotel
+				err := json.NewDecoder(r.Body).Decode(&datahotel)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+
+				} else {
+					UpdatedHotel(mconn, collhotel, bson.M{"id": datahotel.ID}, datahotel)
+					response.Status = true
+					response.Message = "Berhasil Update Hotel"
+					GCFReturnStruct(CreateResponse(true, "Success Update Hotel", datahotel))
+				}
+			} else {
+				response.Message = "Anda tidak dapat Update data karena bukan admin"
+			}
+
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// get all hotel
+func GCFGetAllHotel(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	datahotel := GetAllHotel(mconn, collectionname)
+	if datahotel != nil {
+		return GCFReturnStruct(CreateResponse(true, "success Get All Hotel", datahotel))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed Get All Hotel", datahotel))
+	}
+}
+
+func GCFGetAllHotell(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+	resp := new(Credential)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		resp.Status = false
+		resp.Message = "Header Login Not Exist"
+	} else {
+		existing := IsExist(tokenlogin, os.Getenv(publickey))
+		if !existing {
+			resp.Status = false
+			resp.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			koneksyen := SetConnection(Mongostring, dbname)
+			datahotel := GetAllHotel(koneksyen, colname)
+			yas, _ := json.Marshal(datahotel)
+			resp.Status = true
+			resp.Message = "Data Berhasil diambil"
+			resp.Token = string(yas)
+		}
+	}
+	return ReturnStringStruct(resp)
+}
+
+func GetAllDataHotels(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := SetConnection(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		// Dekode token untuk mendapatkan
+		_, err := DecodeGetHotel(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "Data Tersebut tidak ada" + tokenlogin
+		} else {
+			// Langsung ambil data hotel
+			datahotel := GetAllHotel(conn, colname)
+			if datahotel == nil {
+				req.Status = false
+				req.Message = "Data hotel tidak ada"
+			} else {
+				req.Status = true
+				req.Message = "Data Hotel berhasil diambil"
+				req.Data = datahotel
+			}
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
+// get all hotel by id
+func GCFGetAllHotelID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+
+	var datahotel Hotel
+	err := json.NewDecoder(r.Body).Decode(&datahotel)
+	if err != nil {
+		return err.Error()
+	}
+
+	hotel := GetAllHotelID(mconn, collectionname, datahotel)
+	if hotel != (Hotel{}) {
+		return GCFReturnStruct(CreateResponse(true, "Success: Get ID Hotel", datahotel))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Hotel", datahotel))
+	}
+}
+
+// <--- ini restoran --->
+
+// restoran post
+func GCFInsertRestoran(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collrestoran string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datarestoran Restoran
+				err := json.NewDecoder(r.Body).Decode(&datarestoran)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					insertRestoran(mconn, collrestoran, Restoran{
+						Nomorid:     datarestoran.Nomorid,
+						Title:       datarestoran.Title,
+						Description: datarestoran.Description,
+						Lokasi:      datarestoran.Lokasi,
+						Image:       datarestoran.Image,
+						Status:      datarestoran.Status,
+					})
+					response.Status = true
+					response.Message = "Berhasil Insert Restoran"
+				}
+			} else {
+				response.Message = "Anda tidak dapat Insert data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// delete restoran
+func GCFDeleteRestoran(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collrestoran string, r *http.Request) string {
+
+	var respon Credential
+	respon.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		respon.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			respon.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datarestoran Restoran
+				err := json.NewDecoder(r.Body).Decode(&datarestoran)
+				if err != nil {
+					respon.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					DeleteRestoran(mconn, collrestoran, datarestoran)
+					respon.Status = true
+					respon.Message = "Berhasil Delete Restoran"
+				}
+			} else {
+				respon.Message = "Anda tidak dapat Delete data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(respon)
+}
+
+// update restoran
+func GCFUpdateRestoran(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collrestoran string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datarestoran Restoran
+				err := json.NewDecoder(r.Body).Decode(&datarestoran)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+
+				} else {
+					UpdatedRestoran(mconn, collrestoran, bson.M{"id": datarestoran.ID}, datarestoran)
+					response.Status = true
+					response.Message = "Berhasil Update Restoran"
+					GCFReturnStruct(CreateResponse(true, "Success Update Restoran", datarestoran))
+				}
+			} else {
+				response.Message = "Anda tidak dapat Update data karena bukan admin"
+			}
+
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// get all restoran
+func GCFGetAllRestoran(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	datarestoran := GetAllRestoran(mconn, collectionname)
+	if datarestoran != nil {
+		return GCFReturnStruct(CreateResponse(true, "success Get All Restoran", datarestoran))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed Get All Restoran", datarestoran))
+	}
+}
+
+func GCFGetAllRestorann(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+	resp := new(Credential)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		resp.Status = false
+		resp.Message = "Header Login Not Exist"
+	} else {
+		existing := IsExist(tokenlogin, os.Getenv(publickey))
+		if !existing {
+			resp.Status = false
+			resp.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			koneksyen := SetConnection(Mongostring, dbname)
+			datarestoran := GetAllRestoran(koneksyen, colname)
+			yas, _ := json.Marshal(datarestoran)
+			resp.Status = true
+			resp.Message = "Data Berhasil diambil"
+			resp.Token = string(yas)
+		}
+	}
+	return ReturnStringStruct(resp)
+}
+
+func GetAllDataRestorans(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := SetConnection(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		// Dekode token untuk mendapatkan
+		_, err := DecodeGetRestoran(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "Data Tersebut tidak ada" + tokenlogin
+		} else {
+			// Langsung ambil data restoran
+			datarestoran := GetAllRestoran(conn, colname)
+			if datarestoran == nil {
+				req.Status = false
+				req.Message = "Data restoran tidak ada"
+			} else {
+				req.Status = true
+				req.Message = "Data Restoran berhasil diambil"
+				req.Data = datarestoran
+			}
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
+// get all restoran by id
+func GCFGetAllRestoranID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+
+	var datarestoran Restoran
+	err := json.NewDecoder(r.Body).Decode(&datarestoran)
+	if err != nil {
+		return err.Error()
+	}
+
+	restoran := GetAllRestoranID(mconn, collectionname, datarestoran)
+	if restoran != (Restoran{}) {
+		return GCFReturnStruct(CreateResponse(true, "Success: Get ID Restoran", datarestoran))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Restoran", datarestoran))
 	}
 }
 
@@ -414,10 +1014,10 @@ func GCFGetAllAboutt(publickey, Mongostring, dbname, colname string, r *http.Req
 			resp.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			koneksyen := SetConnection(Mongostring, dbname)
-			datacatalog := GetAllAbout(koneksyen, colname)
-			yas, _ := json.Marshal(datacatalog)
+			dataabaout := GetAllAbout(koneksyen, colname)
+			yas, _ := json.Marshal(dataabaout)
 			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
+			resp.Message = "Data About Berhasil diambil"
 			resp.Token = string(yas)
 		}
 	}
@@ -466,10 +1066,10 @@ func GCFGetAllContactt(publickey, Mongostring, dbname, colname string, r *http.R
 			resp.Message = "Kamu kayaknya belum punya akun"
 		} else {
 			koneksyen := SetConnection(Mongostring, dbname)
-			datacatalog := GetAllContact(koneksyen, colname)
-			yas, _ := json.Marshal(datacatalog)
+			datacontact := GetAllContact(koneksyen, colname)
+			yas, _ := json.Marshal(datacontact)
 			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
+			resp.Message = "Data Contact Berhasil diambil"
 			resp.Token = string(yas)
 		}
 	}
@@ -487,27 +1087,4 @@ func GCFGetAllCrawling(MONGOCONNSTRINGENV, dbname, collectionname string) string
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed Get All Contact", datacrawling))
 	}
-}
-
-func GCFGetAllCrawlingg(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
-	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
-		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			datacatalog := GetAllCrawling(koneksyen, colname)
-			yas, _ := json.Marshal(datacatalog)
-			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
-			resp.Token = string(yas)
-		}
-	}
-	return ReturnStringStruct(resp)
 }
