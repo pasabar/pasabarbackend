@@ -95,6 +95,7 @@ func GCFInsertCatalog(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcata
 						Nomorid:     datacatalog.Nomorid,
 						Title:       datacatalog.Title,
 						Description: datacatalog.Description,
+						Lokasi:      datacatalog.Lokasi,
 						Image:       datacatalog.Image,
 						Status:      datacatalog.Status,
 					})
@@ -193,6 +194,43 @@ func GCFGetAllCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed Get All Catalog", datacatalog))
 	}
+}
+
+func GCFGetAllCatalogs(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collcatalog string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("token")
+	if gettoken == "" {
+		response.Message = "Missing token in Headers"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Invalid token"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datacatalog Catalog
+				err := json.NewDecoder(r.Body).Decode(&datacatalog)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+
+				} else {
+					GetAllCatalog(mconn, collcatalog)
+					response.Status = true
+					response.Message = "Berhasil Ambil data"
+					GCFReturnStruct(CreateResponse(true, "Success Get Catalog", datacatalog))
+				}
+			} else {
+				response.Message = "Anda tidak dapat Get data karena bukan admin"
+			}
+
+		}
+	}
+	return GCFReturnStruct(response)
 }
 
 // get all catalog by id
