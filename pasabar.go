@@ -206,3 +206,10 @@ func GetIdContact(mongoconn *mongo.Database, collection string, contactdata Cont
 	filter := bson.M{"id": contactdata.ID}
 	return atdb.GetOneDoc[Contact](mongoconn, collection, filter)
 }
+
+//crawling function
+
+func GetAllCrawling(mongoconn *mongo.Database, collection string) []Crawling {
+	crawling := atdb.GetAllDoc[[]Crawling](mongoconn, collection)
+	return crawling
+}

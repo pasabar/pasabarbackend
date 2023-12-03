@@ -400,3 +400,16 @@ func GCFGetAllContact(MONGOCONNSTRINGENV, dbname, collectionname string) string 
 		return GCFReturnStruct(CreateResponse(false, "Failed Get All Contact", datacontact))
 	}
 }
+
+//crawling
+
+// get all crawling
+func GCFGetAllCrawling(MONGOCONNSTRINGENV, dbname, collectionname string) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	datacrawling := GetAllCrawling(mconn, collectionname)
+	if datacrawling != nil {
+		return GCFReturnStruct(CreateResponse(true, "success Get All Contact", datacrawling))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed Get All Contact", datacrawling))
+	}
+}

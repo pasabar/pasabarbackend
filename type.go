@@ -36,6 +36,14 @@ type Payload struct {
 	Nbf     time.Time `json:"nbf"`
 }
 
+type Crawling struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty" `
+	Created_at string             `json:"created_at" bson:"created_at"`
+	Full_text  string             `json:"full_text" bson:"full_text"`
+	Username   string             `json:"username" bson:"username"`
+	Location   string             `json:"location" bson:"location"`
+}
+
 type Catalog struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" `
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
