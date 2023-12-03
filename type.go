@@ -33,6 +33,7 @@ type Payload struct {
 	Wisata   string    `json:"wisata"`
 	Hotel    string    `json:"hotel"`
 	Restoran string    `json:"restoran"`
+	About    string    `json:"about"`
 	Role     string    `json:"role"`
 	Exp      time.Time `json:"exp"`
 	Iat      time.Time `json:"iat"`

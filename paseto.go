@@ -1024,6 +1024,35 @@ func GCFGetAllAboutt(publickey, Mongostring, dbname, colname string, r *http.Req
 	return ReturnStringStruct(resp)
 }
 
+func GetAllDataAbouts(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := SetConnection(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		// Dekode token untuk mendapatkan
+		_, err := DecodeGetAbout(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "Data Tersebut tidak ada" + tokenlogin
+		} else {
+			// Langsung ambil data about
+			dataabout := GetAllAbout(conn, colname)
+			if dataabout == nil {
+				req.Status = false
+				req.Message = "Data about tidak ada"
+			} else {
+				req.Status = true
+				req.Message = "Data about berhasil diambil"
+				req.Data = dataabout
+			}
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
 // <--- ini contact --->
 
 // contact post
