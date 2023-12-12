@@ -7,12 +7,13 @@ import (
 )
 
 type Admin struct {
-	Email    string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
-	Role     string `json:"role,omitempty" bson:"role,omitempty"`
-	Token    string `json:"token,omitempty" bson:"token,omitempty"`
-	Private  string `json:"private,omitempty" bson:"private,omitempty"`
-	Public   string `json:"public,omitempty" bson:"public,omitempty"`
+	Email       string `json:"email" bson:"email"`
+	Password    string `json:"password" bson:"password"`
+	Role        string `json:"role,omitempty" bson:"role,omitempty"`
+	Token       string `json:"token,omitempty" bson:"token,omitempty"`
+	Private     string `json:"private,omitempty" bson:"private,omitempty"`
+	Public      string `json:"public,omitempty" bson:"public,omitempty"`
+	No_whatsapp string `json:"no_whatsapp,omitempty" bson:"no_whatsapp,omitempty"`
 }
 
 type Credential struct {
