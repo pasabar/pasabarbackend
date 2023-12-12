@@ -20,11 +20,11 @@ func SetConnection(MONGOCONNSTRINGENV, dbname string) *mongo.Database {
 	return atdb.MongoConnect(DBmongoinfo)
 }
 
-func InsertAdmindata(MongoConn *mongo.Database, email, role, password string) (InsertedID interface{}) {
+func InsertAdmindata(MongoConn *mongo.Database, email, password, no_whatsapp string) (InsertedID interface{}) {
 	req := new(Admin)
 	req.Email = email
 	req.Password = password
-	req.Role = role
+	req.No_whatsapp = no_whatsapp
 	return InsertOneDoc(MongoConn, "admin", req)
 }
 
