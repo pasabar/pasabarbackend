@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aiteung/atapi"
+	"github.com/aiteung/atmessage"
+	"github.com/whatsauth/wa"
 	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -32,6 +35,41 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 		}
 	}
 	return GCFReturnStruct(resp)
+}
+
+func LoginWA(token, Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
+	var resp Credential
+	mconn := SetConnection(MongoEnv, dbname)
+	var dataadmin Admin
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	if err != nil {
+		resp.Message = "error parsing application/json: " + err.Error()
+	} else {
+		if IsPasswordValid(mconn, Colname, dataadmin) {
+			tokenstring, err := watoken.Encode(dataadmin.Email, os.Getenv(Privatekey))
+			if err != nil {
+				resp.Message = "Gagal Encode Token : " + err.Error()
+			} else {
+				resp.Status = true
+				resp.Message = "Selamat Datang SUPERADMIN"
+				resp.Token = tokenstring
+			}
+
+			var email = dataadmin.Email
+			var nohp = dataadmin.No_whatsapp
+
+			dt := &wa.TextMessage{
+				To:       nohp,
+				IsGroup:  false,
+				Messages: "Selamat datang Admin PASABAR anda berhasil Login, anda masuk menggunakan akun: " + email + "\nSelamat menggunakanya ya",
+			}
+
+			atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv(token), dt, "https://api.wa.my.id/api/send/message/text")
+		} else {
+			resp.Message = "Password Salah"
+		}
+	}
+	return ReturnStringStruct(resp)
 }
 
 // return struct
