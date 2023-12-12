@@ -14,6 +14,7 @@ func TestCreateNewAdminRole(t *testing.T) {
 	admindata.Email = "ryaasishlah@gmail.com"
 	admindata.Password = "mantap"
 	admindata.Role = "admin"
+	admindata.No_whatsapp = "6282126665837"
 	mconn := SetConnection("MONGOSTRING", "pasabarapk")
 	CreateNewAdminRole(mconn, "admin", admindata)
 }
@@ -30,6 +31,7 @@ func CreateNewAdminToken(t *testing.T) {
 	admindata.Email = "ryaasishlah@gmail.com"
 	admindata.Password = "mantap"
 	admindata.Role = "admin"
+	admindata.No_whatsapp = "6282126665837"
 
 	// Create a MongoDB connection
 	mconn := SetConnection("MONGOSTRING", "pasabarapk")
@@ -117,6 +119,7 @@ func TestAdminFix(t *testing.T) {
 	admindata.Email = "pasabar@gmail.com"
 	admindata.Password = "hebat"
 	admindata.Role = "admin"
+	admindata.No_whatsapp = "6282126665837"
 	CreateAdmin(mconn, "admin", admindata)
 }
 
@@ -125,6 +128,7 @@ func TestLoginn(t *testing.T) {
 	var admindata Admin
 	admindata.Email = "pasabar@gmail.com"
 	admindata.Password = "hebat"
+	admindata.No_whatsapp = "6282126665837"
 	IsPasswordValid(mconn, "admin", admindata)
 	fmt.Println(admindata)
 }
