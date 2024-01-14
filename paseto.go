@@ -1110,7 +1110,7 @@ func GCFInsertContact(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 }
 
 // get all contact
-func GCFGetAllContact(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func GCFGetAllContacts(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	datacontact := GetAllContact(mconn, collectionname)
 	if datacontact != nil {
