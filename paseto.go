@@ -1029,7 +1029,7 @@ func GCFUpdateAbout(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collabout 
 }
 
 // get all about
-func GCFGetAllAbout(MONGOCONNSTRINGENV, dbname, collectionname string) string {
+func GCFGetAllAbout(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	dataabout := GetAllAbout(mconn, collectionname)
 	if dataabout != nil {
@@ -1110,7 +1110,7 @@ func GCFInsertContact(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 }
 
 // get all contact
-func GCFGetAllContact(MONGOCONNSTRINGENV, dbname, collectionname string) string {
+func GCFGetAllContact(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	datacontact := GetAllContact(mconn, collectionname)
 	if datacontact != nil {
