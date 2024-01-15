@@ -66,3 +66,11 @@ func DecodeGetAbout(PublicKey, tokenStr string) (pay string, err error) {
 	}
 	return key.About, nil
 }
+
+func DecodeGetKesimpulan(PublicKey, tokenStr string) (pay string, err error) {
+	key, err := Decoder(PublicKey, tokenStr)
+	if err != nil {
+		fmt.Println("Cannot decode the token", err.Error())
+	}
+	return key.Kesimpulan, nil
+}
