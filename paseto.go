@@ -1155,3 +1155,205 @@ func GCFGetAllCrawling(MONGOCONNSTRINGENV, dbname, collectionname string) string
 		return GCFReturnStruct(CreateResponse(false, "Failed Get All Contact", datacrawling))
 	}
 }
+
+// <--- ini kesimpulan --->
+
+// kesimpulan post
+func GCFInsertKesimpulan(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collkesimpulan string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datakesimpulan Kesimpulan
+				err := json.NewDecoder(r.Body).Decode(&datakesimpulan)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					insertKesimpulan(mconn, collkesimpulan, Kesimpulan{
+						Nomorid:     datakesimpulan.Nomorid,
+						Ticket:      datakesimpulan.Ticket,
+						Parkir:      datakesimpulan.Parkir,
+						Jarak:       datakesimpulan.Jarak,
+						Pemandangan: datakesimpulan.Pemandangan,
+						Kelebihan:   datakesimpulan.Kelebihan,
+						Kekurangan:  datakesimpulan.Kekurangan,
+						Status:      datakesimpulan.Status,
+					})
+					response.Status = true
+					response.Message = "Berhasil Insert Kesimpulan"
+				}
+			} else {
+				response.Message = "Anda tidak dapat Insert data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// delete kesimpulan
+func GCFDeleteKesimpulan(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collkesimpulan string, r *http.Request) string {
+
+	var respon Credential
+	respon.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		respon.Message = "Header Login Not Exist"
+	} else {
+		// Process the request with the "Login" token
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			respon.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datakesimpulan Kesimpulan
+				err := json.NewDecoder(r.Body).Decode(&datakesimpulan)
+				if err != nil {
+					respon.Message = "Error parsing application/json: " + err.Error()
+				} else {
+					DeleteKesimpulan(mconn, collkesimpulan, datakesimpulan)
+					respon.Status = true
+					respon.Message = "Berhasil Delete Kesimpulan"
+				}
+			} else {
+				respon.Message = "Anda tidak dapat Delete data karena bukan admin"
+			}
+		}
+	}
+	return GCFReturnStruct(respon)
+}
+
+// update kesimpulan
+func GCFUpdateKesimpulan(publickey, MONGOCONNSTRINGENV, dbname, colladmin, collkesimpulan string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var admindata Admin
+
+	gettoken := r.Header.Get("Login")
+	if gettoken == "" {
+		response.Message = "Header Login Not Exist"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), gettoken)
+		admindata.Email = checktoken
+		if checktoken == "" {
+			response.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			admin2 := FindAdmin(mconn, colladmin, admindata)
+			if admin2.Role == "admin" {
+				var datakesimpulan Kesimpulan
+				err := json.NewDecoder(r.Body).Decode(&datakesimpulan)
+				if err != nil {
+					response.Message = "Error parsing application/json: " + err.Error()
+
+				} else {
+					UpdatedKesimpulan(mconn, collkesimpulan, bson.M{"id": datakesimpulan.ID}, datakesimpulan)
+					response.Status = true
+					response.Message = "Berhasil Update Kesimpulan"
+					GCFReturnStruct(CreateResponse(true, "Success Update Kesimpulan", datakesimpulan))
+				}
+			} else {
+				response.Message = "Anda tidak dapat Update data karena bukan admin"
+			}
+
+		}
+	}
+	return GCFReturnStruct(response)
+}
+
+// get all kesimpulan
+func GCFGetAllKesimpulan(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	datakesimpulan := GetAllKesimpulan(mconn, collectionname)
+	if datakesimpulan != nil {
+		return GCFReturnStruct(CreateResponse(true, "success Get All Kesimpulan", datakesimpulan))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed Get All Kesimpulan", datakesimpulan))
+	}
+}
+
+func GCFGetAllKesimpulann(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+	resp := new(Credential)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		resp.Status = false
+		resp.Message = "Header Login Not Exist"
+	} else {
+		existing := IsExist(tokenlogin, os.Getenv(publickey))
+		if !existing {
+			resp.Status = false
+			resp.Message = "Kamu kayaknya belum punya akun"
+		} else {
+			koneksyen := SetConnection(Mongostring, dbname)
+			datakesimpulan := GetAllKesimpulan(koneksyen, colname)
+			yas, _ := json.Marshal(datakesimpulan)
+			resp.Status = true
+			resp.Message = "Data Berhasil diambil"
+			resp.Token = string(yas)
+		}
+	}
+	return ReturnStringStruct(resp)
+}
+
+func GetAllDataKesimpulans(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := SetConnection(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		// Dekode token untuk mendapatkan
+		_, err := DecodeGetKesimpulan(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "Data Tersebut tidak ada" + tokenlogin
+		} else {
+			// Langsung ambil data kesimpulan
+			datakesimpulan := GetAllKesimpulan(conn, colname)
+			if datakesimpulan == nil {
+				req.Status = false
+				req.Message = "Data kesimpulan tidak ada"
+			} else {
+				req.Status = true
+				req.Message = "Data Kesimpulan berhasil diambil"
+				req.Data = datakesimpulan
+			}
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
+// get all kesimpulan by id
+func GCFGetAllKesimpulanID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+
+	var datakesimpulan Kesimpulan
+	err := json.NewDecoder(r.Body).Decode(&datakesimpulan)
+	if err != nil {
+		return err.Error()
+	}
+
+	kesimpulan := GetAllKesimpulanID(mconn, collectionname, datakesimpulan)
+	if kesimpulan != (Kesimpulan{}) {
+		return GCFReturnStruct(CreateResponse(true, "Success: Get ID Kesimpulan", datakesimpulan))
+	} else {
+		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Kesimpulan", datakesimpulan))
+	}
+}
