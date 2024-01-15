@@ -105,3 +105,14 @@ type Contact struct {
 	Message  string `json:"image" bson:"image"`
 	Status   bool   `json:"status" bson:"status"`
 }
+
+type Kesimpulan struct {
+	ID          int    `json:"id" bson:"id"`
+	Ticket      string `json:"ticket" bson:"ticket"`
+	Parkir      string `json:"parkir" bson:"parkir"`
+	Jarak       string `json:"jarak" bson:"jarak"`
+	Pemandangan string `json:"pemandangan" bson:"pemandangan"`
+	Kelebihan   string `json:"kelebihan" bson:"kelebihan"`
+	Kekurangan  string `json:"kekurangan" bson:"kekurangan"`
+	Status      bool   `json:"status" bson:"status"`
+}
