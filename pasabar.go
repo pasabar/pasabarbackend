@@ -321,3 +321,42 @@ func GetAllCrawling(mongoconn *mongo.Database, collection string) []Crawling {
 	crawling := atdb.GetAllDoc[[]Crawling](mongoconn, collection)
 	return crawling
 }
+
+// kesimpulan function
+func insertKesimpulan(mongoconn *mongo.Database, collection string, kesimpulandata Kesimpulan) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, kesimpulandata)
+}
+
+func DeleteKesimpulan(mongoconn *mongo.Database, collection string, kesimpulandata Kesimpulan) interface{} {
+	filter := bson.M{"nomorid": kesimpulandata.Nomorid}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func UpdatedKesimpulan(mongoconn *mongo.Database, collection string, filter bson.M, kesimpulandata Kesimpulan) interface{} {
+	updatedFilter := bson.M{"nomorid": kesimpulandata.Nomorid}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, kesimpulandata)
+}
+
+func GetAllKesimpulan(mongoconn *mongo.Database, collection string) []Kesimpulan {
+	kesimpulan := atdb.GetAllDoc[[]Kesimpulan](mongoconn, collection)
+	return kesimpulan
+}
+func GetAllKesimpulans(MongoConn *mongo.Database, colname string, email string) []Admin {
+	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+	return data
+}
+
+func GetAllKesimpulanID(mongoconn *mongo.Database, collection string, kesimpulandata Kesimpulan) Kesimpulan {
+	filter := bson.M{
+		"nomorid":     kesimpulandata.Nomorid,
+		"ticket":      kesimpulandata.Ticket,
+		"parkir":      kesimpulandata.Parkir,
+		"jarak":       kesimpulandata.Jarak,
+		"pemandangan": kesimpulandata.Pemandangan,
+		"kelebihan":   kesimpulandata.Kelebihan,
+		"kekurangan":  kesimpulandata.Kekurangan,
+		"status":      kesimpulandata.Status,
+	}
+	kesimpulanID := atdb.GetOneDoc[Kesimpulan](mongoconn, collection, filter)
+	return kesimpulanID
+}
