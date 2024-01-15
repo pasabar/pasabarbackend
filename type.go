@@ -29,16 +29,17 @@ type Response struct {
 }
 
 type Payload struct {
-	Admin    string    `json:"admin"`
-	Catalog  string    `json:"catalog"`
-	Wisata   string    `json:"wisata"`
-	Hotel    string    `json:"hotel"`
-	Restoran string    `json:"restoran"`
-	About    string    `json:"about"`
-	Role     string    `json:"role"`
-	Exp      time.Time `json:"exp"`
-	Iat      time.Time `json:"iat"`
-	Nbf      time.Time `json:"nbf"`
+	Admin      string    `json:"admin"`
+	Catalog    string    `json:"catalog"`
+	Wisata     string    `json:"wisata"`
+	Hotel      string    `json:"hotel"`
+	Restoran   string    `json:"restoran"`
+	About      string    `json:"about"`
+	Kesimpulan string    `json:"kesimpulan"`
+	Role       string    `json:"role"`
+	Exp        time.Time `json:"exp"`
+	Iat        time.Time `json:"iat"`
+	Nbf        time.Time `json:"nbf"`
 }
 
 type Crawling struct {
@@ -108,6 +109,7 @@ type Contact struct {
 
 type Kesimpulan struct {
 	ID          int    `json:"id" bson:"id"`
+	Nomorid     int    `json:"nomorid" bson:"nomorid"`
 	Ticket      string `json:"ticket" bson:"ticket"`
 	Parkir      string `json:"parkir" bson:"parkir"`
 	Jarak       string `json:"jarak" bson:"jarak"`
