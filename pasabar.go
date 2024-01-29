@@ -208,18 +208,18 @@ func GetAllWisataID(mongoconn *mongo.Database, collection string, wisatadata Wis
 	return wisataID
 }
 
-func GetCatalogFromID(db *mongo.Database, col string, nomorid int64) (*Catalog, error) {
+func GetCatalogFromID(db *mongo.Database, col string, _id primitive.ObjectID) (*Catalog, error) {
 	cols := db.Collection(col)
-	filter := bson.M{"nomorid": nomorid}
+	filter := bson.M{"_id": _id}
 
 	cataloglist := new(Catalog)
 
 	err := cols.FindOne(context.Background(), filter).Decode(cataloglist)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("no data found for ID %d", nomorid)
+			return nil, fmt.Errorf("no data found for ID %s", _id.Hex())
 		}
-		return nil, fmt.Errorf("error retrieving data for ID %d: %s", nomorid, err.Error())
+		return nil, fmt.Errorf("error retrieving data for ID %s: %s", _id.Hex(), err.Error())
 	}
 
 	return cataloglist, nil

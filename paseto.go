@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/aiteung/atapi"
 	"github.com/aiteung/atmessage"
 	"github.com/whatsauth/wa"
 	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // <--- ini Login & Register Admin --->
@@ -310,28 +310,28 @@ func GetOneDataCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	resp := new(Credential)
 	catalogdata := new(Catalog)
 	resp.Status = false
-
 	err := json.NewDecoder(r.Body).Decode(&catalogdata)
 	if err != nil {
 		resp.Message = "Error decoding JSON request body: " + err.Error()
 		return GCFReturnStruct(resp)
 	}
 
-	idStr := r.URL.Query().Get("nomorid")
-	if idStr == "" {
-		resp.Message = "Missing 'nomorid' parameter in the URL"
+	id := r.URL.Query().Get("_id")
+	if id == "" {
+		resp.Message = "Missing '_id' parameter in the URL"
 		return GCFReturnStruct(resp)
 	}
 
-	// Mengubah string nomorid menjadi tipe data int64
-	nomorid, err := strconv.ParseInt(idStr, 10, 64)
+	ID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		resp.Message = "Invalid 'nomorid' parameter in the URL: " + err.Error()
+		resp.Message = "Invalid '_id' parameter in the URL: " + err.Error()
 		return GCFReturnStruct(resp)
 	}
 
-	// Menggunakan fungsi GetCatalogFromID untuk mendapatkan data produk berdasarkan ID
-	catalogdata, err = GetCatalogFromID(mconn, collectionname, nomorid)
+	catalogdata.ID = ID
+
+	// Menggunakan fungsi GetProdukFromID untuk mendapatkan data produk berdasarkan ID
+	catalogdata, err = GetCatalogFromID(mconn, collectionname, ID)
 	if err != nil {
 		resp.Message = err.Error()
 		return GCFReturnStruct(resp)
