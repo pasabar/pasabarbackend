@@ -1402,10 +1402,6 @@ func GetOneDataCatalogs(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 	resp.Status = false
 
 	err := json.NewDecoder(r.Body).Decode(&catalogdata)
-	if err != nil {
-		resp.Message = "Error decoding JSON request body"
-		return GCFReturnStruct(resp)
-	}
 
 	nomorID := r.URL.Query().Get("nomorid")
 	if nomorID == "" {
