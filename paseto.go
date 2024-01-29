@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/aiteung/atapi"
 	"github.com/aiteung/atmessage"
@@ -83,26 +84,26 @@ func ReturnStringStruct(Data any) string {
 	return string(jsonee)
 }
 
-func Register(Mongoenv, dbname string, r *http.Request) string {
-	resp := new(Credential)
-	admindata := new(Admin)
-	resp.Status = false
-	conn := SetConnection(Mongoenv, dbname)
-	err := json.NewDecoder(r.Body).Decode(&admindata)
-	if err != nil {
-		resp.Message = "error parsing application/json: " + err.Error()
-	} else {
-		resp.Status = true
-		hash, err := HashPass(admindata.Password)
-		if err != nil {
-			resp.Message = "Gagal Hash Password" + err.Error()
-		}
-		InsertAdmindata(conn, admindata.Email, admindata.Role, hash)
-		resp.Message = "Berhasil Input data"
-	}
-	response := ReturnStringStruct(resp)
-	return response
-}
+// func Register(Mongoenv, dbname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	admindata := new(Admin)
+// 	resp.Status = false
+// 	conn := SetConnection(Mongoenv, dbname)
+// 	err := json.NewDecoder(r.Body).Decode(&admindata)
+// 	if err != nil {
+// 		resp.Message = "error parsing application/json: " + err.Error()
+// 	} else {
+// 		resp.Status = true
+// 		hash, err := HashPass(admindata.Password)
+// 		if err != nil {
+// 			resp.Message = "Gagal Hash Password" + err.Error()
+// 		}
+// 		InsertAdmindata(conn, admindata.Email, admindata.Role, hash)
+// 		resp.Message = "Berhasil Input data"
+// 	}
+// 	response := ReturnStringStruct(resp)
+// 	return response
+// }
 
 // <--- ini catalog --->
 
@@ -234,28 +235,28 @@ func GCFGetAllCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	}
 }
 
-func GCFGetAllCatalogg(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
-	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
-		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			datacatalog := GetAllCatalog(koneksyen, colname)
-			yas, _ := json.Marshal(datacatalog)
-			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
-			resp.Token = string(yas)
-		}
-	}
-	return ReturnStringStruct(resp)
-}
+// func GCFGetAllCatalogg(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	tokenlogin := r.Header.Get("Login")
+// 	if tokenlogin == "" {
+// 		resp.Status = false
+// 		resp.Message = "Header Login Not Exist"
+// 	} else {
+// 		existing := IsExist(tokenlogin, os.Getenv(publickey))
+// 		if !existing {
+// 			resp.Status = false
+// 			resp.Message = "Kamu kayaknya belum punya akun"
+// 		} else {
+// 			koneksyen := SetConnection(Mongostring, dbname)
+// 			datacatalog := GetAllCatalog(koneksyen, colname)
+// 			yas, _ := json.Marshal(datacatalog)
+// 			resp.Status = true
+// 			resp.Message = "Data Berhasil diambil"
+// 			resp.Token = string(yas)
+// 		}
+// 	}
+// 	return ReturnStringStruct(resp)
+// }
 
 func GetAllDataCatalogs(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
@@ -302,6 +303,45 @@ func GCFGetAllCatalogID(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Catalog", datacatalog))
 	}
+}
+
+func GetOneDataCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	catalogdata := new(Catalog)
+	resp.Status = false
+
+	err := json.NewDecoder(r.Body).Decode(&catalogdata)
+	if err != nil {
+		resp.Message = "Error decoding JSON request body: " + err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	idStr := r.URL.Query().Get("nomorid")
+	if idStr == "" {
+		resp.Message = "Missing 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	// Mengubah string nomorid menjadi tipe data int64
+	nomorid, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		resp.Message = "Invalid 'nomorid' parameter in the URL: " + err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	// Menggunakan fungsi GetCatalogFromID untuk mendapatkan data produk berdasarkan ID
+	catalogdata, err = GetCatalogFromID(mconn, collectionname, nomorid)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Data = []Catalog{*catalogdata}
+
+	return GCFReturnStruct(resp)
 }
 
 // <--- ini wisata --->
@@ -434,28 +474,28 @@ func GCFGetAllWisata(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.
 	}
 }
 
-func GCFGetAllWisataa(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
-	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
-		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			datawisata := GetAllWisata(koneksyen, colname)
-			yas, _ := json.Marshal(datawisata)
-			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
-			resp.Token = string(yas)
-		}
-	}
-	return ReturnStringStruct(resp)
-}
+// func GCFGetAllWisataa(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	tokenlogin := r.Header.Get("Login")
+// 	if tokenlogin == "" {
+// 		resp.Status = false
+// 		resp.Message = "Header Login Not Exist"
+// 	} else {
+// 		existing := IsExist(tokenlogin, os.Getenv(publickey))
+// 		if !existing {
+// 			resp.Status = false
+// 			resp.Message = "Kamu kayaknya belum punya akun"
+// 		} else {
+// 			koneksyen := SetConnection(Mongostring, dbname)
+// 			datawisata := GetAllWisata(koneksyen, colname)
+// 			yas, _ := json.Marshal(datawisata)
+// 			resp.Status = true
+// 			resp.Message = "Data Berhasil diambil"
+// 			resp.Token = string(yas)
+// 		}
+// 	}
+// 	return ReturnStringStruct(resp)
+// }
 
 func GetAllDataWisataa(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
@@ -634,28 +674,28 @@ func GCFGetAllHotel(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.R
 	}
 }
 
-func GCFGetAllHotell(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
-	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
-		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			datahotel := GetAllHotel(koneksyen, colname)
-			yas, _ := json.Marshal(datahotel)
-			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
-			resp.Token = string(yas)
-		}
-	}
-	return ReturnStringStruct(resp)
-}
+// func GCFGetAllHotell(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	tokenlogin := r.Header.Get("Login")
+// 	if tokenlogin == "" {
+// 		resp.Status = false
+// 		resp.Message = "Header Login Not Exist"
+// 	} else {
+// 		existing := IsExist(tokenlogin, os.Getenv(publickey))
+// 		if !existing {
+// 			resp.Status = false
+// 			resp.Message = "Kamu kayaknya belum punya akun"
+// 		} else {
+// 			koneksyen := SetConnection(Mongostring, dbname)
+// 			datahotel := GetAllHotel(koneksyen, colname)
+// 			yas, _ := json.Marshal(datahotel)
+// 			resp.Status = true
+// 			resp.Message = "Data Berhasil diambil"
+// 			resp.Token = string(yas)
+// 		}
+// 	}
+// 	return ReturnStringStruct(resp)
+// }
 
 func GetAllDataHotels(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
@@ -834,28 +874,28 @@ func GCFGetAllRestoran(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	}
 }
 
-func GCFGetAllRestorann(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
-	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
-		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			datarestoran := GetAllRestoran(koneksyen, colname)
-			yas, _ := json.Marshal(datarestoran)
-			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
-			resp.Token = string(yas)
-		}
-	}
-	return ReturnStringStruct(resp)
-}
+// func GCFGetAllRestorann(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	tokenlogin := r.Header.Get("Login")
+// 	if tokenlogin == "" {
+// 		resp.Status = false
+// 		resp.Message = "Header Login Not Exist"
+// 	} else {
+// 		existing := IsExist(tokenlogin, os.Getenv(publickey))
+// 		if !existing {
+// 			resp.Status = false
+// 			resp.Message = "Kamu kayaknya belum punya akun"
+// 		} else {
+// 			koneksyen := SetConnection(Mongostring, dbname)
+// 			datarestoran := GetAllRestoran(koneksyen, colname)
+// 			yas, _ := json.Marshal(datarestoran)
+// 			resp.Status = true
+// 			resp.Message = "Data Berhasil diambil"
+// 			resp.Token = string(yas)
+// 		}
+// 	}
+// 	return ReturnStringStruct(resp)
+// }
 
 func GetAllDataRestorans(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
@@ -1039,28 +1079,28 @@ func GCFGetAllAbout(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.R
 	}
 }
 
-func GCFGetAllAboutt(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
-	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
-		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			dataabaout := GetAllAbout(koneksyen, colname)
-			yas, _ := json.Marshal(dataabaout)
-			resp.Status = true
-			resp.Message = "Data About Berhasil diambil"
-			resp.Token = string(yas)
-		}
-	}
-	return ReturnStringStruct(resp)
-}
+// func GCFGetAllAboutt(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	tokenlogin := r.Header.Get("Login")
+// 	if tokenlogin == "" {
+// 		resp.Status = false
+// 		resp.Message = "Header Login Not Exist"
+// 	} else {
+// 		existing := IsExist(tokenlogin, os.Getenv(publickey))
+// 		if !existing {
+// 			resp.Status = false
+// 			resp.Message = "Kamu kayaknya belum punya akun"
+// 		} else {
+// 			koneksyen := SetConnection(Mongostring, dbname)
+// 			dataabaout := GetAllAbout(koneksyen, colname)
+// 			yas, _ := json.Marshal(dataabaout)
+// 			resp.Status = true
+// 			resp.Message = "Data About Berhasil diambil"
+// 			resp.Token = string(yas)
+// 		}
+// 	}
+// 	return ReturnStringStruct(resp)
+// }
 
 func GetAllDataAbouts(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
@@ -1143,16 +1183,16 @@ func GCFGetAllContactt(publickey, Mongostring, dbname, colname string, r *http.R
 	return ReturnStringStruct(resp)
 }
 
-//crawling
+// <--- ini crawling --->
 
 // get all crawling
 func GCFGetAllCrawling(MONGOCONNSTRINGENV, dbname, collectionname string) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	datacrawling := GetAllCrawling(mconn, collectionname)
 	if datacrawling != nil {
-		return GCFReturnStruct(CreateResponse(true, "success Get All Contact", datacrawling))
+		return GCFReturnStruct(CreateResponse(true, "success Get All Crawling", datacrawling))
 	} else {
-		return GCFReturnStruct(CreateResponse(false, "Failed Get All Contact", datacrawling))
+		return GCFReturnStruct(CreateResponse(false, "Failed Get All Crawling", datacrawling))
 	}
 }
 
@@ -1288,28 +1328,28 @@ func GCFGetAllKesimpulan(MONGOCONNSTRINGENV, dbname, collectionname string, r *h
 	}
 }
 
-func GCFGetAllKesimpulann(publickey, Mongostring, dbname, colname string, r *http.Request) string {
-	resp := new(Credential)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		resp.Status = false
-		resp.Message = "Header Login Not Exist"
-	} else {
-		existing := IsExist(tokenlogin, os.Getenv(publickey))
-		if !existing {
-			resp.Status = false
-			resp.Message = "Kamu kayaknya belum punya akun"
-		} else {
-			koneksyen := SetConnection(Mongostring, dbname)
-			datakesimpulan := GetAllKesimpulan(koneksyen, colname)
-			yas, _ := json.Marshal(datakesimpulan)
-			resp.Status = true
-			resp.Message = "Data Berhasil diambil"
-			resp.Token = string(yas)
-		}
-	}
-	return ReturnStringStruct(resp)
-}
+// func GCFGetAllKesimpulann(publickey, Mongostring, dbname, colname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	tokenlogin := r.Header.Get("Login")
+// 	if tokenlogin == "" {
+// 		resp.Status = false
+// 		resp.Message = "Header Login Not Exist"
+// 	} else {
+// 		existing := IsExist(tokenlogin, os.Getenv(publickey))
+// 		if !existing {
+// 			resp.Status = false
+// 			resp.Message = "Kamu kayaknya belum punya akun"
+// 		} else {
+// 			koneksyen := SetConnection(Mongostring, dbname)
+// 			datakesimpulan := GetAllKesimpulan(koneksyen, colname)
+// 			yas, _ := json.Marshal(datakesimpulan)
+// 			resp.Status = true
+// 			resp.Message = "Data Berhasil diambil"
+// 			resp.Token = string(yas)
+// 		}
+// 	}
+// 	return ReturnStringStruct(resp)
+// }
 
 func GetAllDataKesimpulans(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)

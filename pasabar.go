@@ -2,6 +2,7 @@ package pasabarbackend
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -189,10 +190,11 @@ func GetAllWisata(mongoconn *mongo.Database, collection string) []Wisata {
 	wisata := atdb.GetAllDoc[[]Wisata](mongoconn, collection)
 	return wisata
 }
-func GetAllWisatas(MongoConn *mongo.Database, colname string, email string) []Admin {
-	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
-	return data
-}
+
+// func GetAllWisatas(MongoConn *mongo.Database, colname string, email string) []Admin {
+// 	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+// 	return data
+// }
 
 func GetAllWisataID(mongoconn *mongo.Database, collection string, wisatadata Wisata) Wisata {
 	filter := bson.M{
@@ -204,6 +206,23 @@ func GetAllWisataID(mongoconn *mongo.Database, collection string, wisatadata Wis
 	}
 	wisataID := atdb.GetOneDoc[Wisata](mongoconn, collection, filter)
 	return wisataID
+}
+
+func GetCatalogFromID(db *mongo.Database, col string, nomorid int64) (*Catalog, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"nomorid": nomorid}
+
+	cataloglist := new(Catalog)
+
+	err := cols.FindOne(context.Background(), filter).Decode(cataloglist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %d", nomorid)
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %d: %s", nomorid, err.Error())
+	}
+
+	return cataloglist, nil
 }
 
 // hotel function
@@ -225,10 +244,11 @@ func GetAllHotel(mongoconn *mongo.Database, collection string) []Hotel {
 	hotel := atdb.GetAllDoc[[]Hotel](mongoconn, collection)
 	return hotel
 }
-func GetAllHotels(MongoConn *mongo.Database, colname string, email string) []Admin {
-	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
-	return data
-}
+
+// func GetAllHotels(MongoConn *mongo.Database, colname string, email string) []Admin {
+// 	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+// 	return data
+// }
 
 func GetAllHotelID(mongoconn *mongo.Database, collection string, hoteldata Hotel) Hotel {
 	filter := bson.M{
@@ -261,10 +281,11 @@ func GetAllRestoran(mongoconn *mongo.Database, collection string) []Restoran {
 	restoran := atdb.GetAllDoc[[]Restoran](mongoconn, collection)
 	return restoran
 }
-func GetAllRestorans(MongoConn *mongo.Database, colname string, email string) []Admin {
-	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
-	return data
-}
+
+// func GetAllRestorans(MongoConn *mongo.Database, colname string, email string) []Admin {
+// 	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+// 	return data
+// }
 
 func GetAllRestoranID(mongoconn *mongo.Database, collection string, restorandata Restoran) Restoran {
 	filter := bson.M{
@@ -341,10 +362,11 @@ func GetAllKesimpulan(mongoconn *mongo.Database, collection string) []Kesimpulan
 	kesimpulan := atdb.GetAllDoc[[]Kesimpulan](mongoconn, collection)
 	return kesimpulan
 }
-func GetAllKesimpulans(MongoConn *mongo.Database, colname string, email string) []Admin {
-	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
-	return data
-}
+
+// func GetAllKesimpulans(MongoConn *mongo.Database, colname string, email string) []Admin {
+// 	data := atdb.GetAllDoc[[]Admin](MongoConn, colname)
+// 	return data
+// }
 
 func GetAllKesimpulanID(mongoconn *mongo.Database, collection string, kesimpulandata Kesimpulan) Kesimpulan {
 	filter := bson.M{
