@@ -311,10 +311,6 @@ func GetOneDataCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	catalogdata := new(Catalog)
 	resp.Status = false
 	err := json.NewDecoder(r.Body).Decode(&catalogdata)
-	if err != nil {
-		resp.Message = "Error decoding JSON request body: " + err.Error()
-		return GCFReturnStruct(resp)
-	}
 
 	id := r.URL.Query().Get("_id")
 	if id == "" {
@@ -324,7 +320,7 @@ func GetOneDataCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 
 	ID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		resp.Message = "Invalid '_id' parameter in the URL: " + err.Error()
+		resp.Message = "Invalid '_id' parameter in the URL"
 		return GCFReturnStruct(resp)
 	}
 
