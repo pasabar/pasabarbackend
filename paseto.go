@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/aiteung/atapi"
 	"github.com/aiteung/atmessage"
@@ -1392,4 +1393,44 @@ func GCFGetAllKesimpulanID(MONGOCONNSTRINGENV, dbname, collectionname string, r 
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Kesimpulan", datakesimpulan))
 	}
+}
+
+func GetOneDataCatalogs(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	catalogdata := new(Catalog)
+	resp.Status = false
+
+	err := json.NewDecoder(r.Body).Decode(&catalogdata)
+	if err != nil {
+		resp.Message = "Error decoding JSON request body"
+		return GCFReturnStruct(resp)
+	}
+
+	nomorID := r.URL.Query().Get("nomorid")
+	if nomorID == "" {
+		resp.Message = "Missing 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := strconv.Atoi(nomorID)
+	if err != nil {
+		resp.Message = "Invalid 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	catalogdata.Nomorid = ID // Gunakan casing yang sesuai
+
+	// Menggunakan fungsi GetCatalogFromIDs untuk mendapatkan data produk berdasarkan NomorID
+	catalogData, err := GetCatalogFromIDs(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Data = []Catalog{*catalogData}
+
+	return GCFReturnStruct(resp)
 }
