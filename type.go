@@ -48,7 +48,7 @@ type Payload struct {
 }
 
 type Crawling struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty" `
+	ID         primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
 	Created_at string             `json:"created_at" bson:"created_at"`
 	Full_text  string             `json:"full_text" bson:"full_text"`
 	Username   string             `json:"username" bson:"username"`
@@ -56,7 +56,7 @@ type Crawling struct {
 }
 
 type Catalog struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	ID          primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
 	Title       string             `json:"title" bson:"title"`
 	Description string             `json:"description" bson:"description"`
@@ -66,7 +66,7 @@ type Catalog struct {
 }
 
 type Wisata struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	ID          primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
 	Title       string             `json:"title" bson:"title"`
 	Description string             `json:"description" bson:"description"`
@@ -76,7 +76,7 @@ type Wisata struct {
 }
 
 type Hotel struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	ID          primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
 	Title       string             `json:"title" bson:"title"`
 	Description string             `json:"description" bson:"description"`
@@ -86,7 +86,7 @@ type Hotel struct {
 }
 
 type Restoran struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	ID          primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
 	Title       string             `json:"title" bson:"title"`
 	Description string             `json:"description" bson:"description"`
@@ -96,24 +96,24 @@ type Restoran struct {
 }
 
 type About struct {
-	ID          int    `json:"id" bson:"id"`
-	Title       string `json:"title" bson:"title"`
-	Description string `json:"description" bson:"description"`
-	Image       string `json:"image" bson:"image"`
-	Status      bool   `json:"status" bson:"status"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
+	Title       string             `json:"title" bson:"title"`
+	Description string             `json:"description" bson:"description"`
+	Image       string             `json:"image" bson:"image"`
+	Status      bool               `json:"status" bson:"status"`
 }
 
 type Contact struct {
-	ID       int    `json:"id" bson:"id"`
-	FullName string `json:"fullname" bson:"fullname"`
-	Email    string `json:"email" bson:"email"`
-	Phone    string `json:"phone" bson:"phone"`
-	Message  string `json:"image" bson:"image"`
-	Status   bool   `json:"status" bson:"status"`
+	ID       primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
+	FullName string             `json:"fullname" bson:"fullname"`
+	Email    string             `json:"email" bson:"email"`
+	Phone    string             `json:"phone" bson:"phone"`
+	Message  string             `json:"image" bson:"image"`
+	Status   bool               `json:"status" bson:"status"`
 }
 
 type Kesimpulan struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" `
+	ID          primitive.ObjectID `bson:"_id,omitempty"  json:"_id,omitempty" `
 	Nomorid     int                `json:"nomorid" bson:"nomorid"`
 	Ticket      string             `json:"ticket" bson:"ticket"`
 	Parkir      string             `json:"parkir" bson:"parkir"`
