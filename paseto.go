@@ -341,6 +341,42 @@ func GetOneDataCatalog(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	return GCFReturnStruct(resp)
 }
 
+func GetOneDataCatalogs(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	catalogdata := new(Catalog)
+	resp.Status = false
+
+	err := json.NewDecoder(r.Body).Decode(&catalogdata)
+
+	nomorID := r.URL.Query().Get("nomorid")
+	if nomorID == "" {
+		resp.Message = "Missing 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := strconv.Atoi(nomorID)
+	if err != nil {
+		resp.Message = "Invalid 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	catalogdata.Nomorid = ID // Gunakan casing yang sesuai
+
+	// Menggunakan fungsi GetCatalogFromIDs untuk mendapatkan data produk berdasarkan NomorID
+	catalogData, err := GetCatalogFromIDs(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Data = []Catalog{*catalogData}
+
+	return GCFReturnStruct(resp)
+}
+
 // <--- ini wisata --->
 
 // wisata post
@@ -539,6 +575,42 @@ func GCFGetAllWisataID(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Wisata", datawisata))
 	}
+}
+
+func GetOneDataWisatas(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	wisatadata := new(Wisata)
+	resp.Status = false
+
+	err := json.NewDecoder(r.Body).Decode(&wisatadata)
+
+	nomorID := r.URL.Query().Get("nomorid")
+	if nomorID == "" {
+		resp.Message = "Missing 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := strconv.Atoi(nomorID)
+	if err != nil {
+		resp.Message = "Invalid 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	wisatadata.Nomorid = ID // Gunakan casing yang sesuai
+
+	// Menggunakan fungsi GetWisataFromIDs untuk mendapatkan data produk berdasarkan NomorID
+	wisataData, err := GetWisataFromIDs(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Dataw = []Wisata{*wisataData}
+
+	return GCFReturnStruct(resp)
 }
 
 // <--- ini hotel --->
@@ -741,6 +813,42 @@ func GCFGetAllHotelID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	}
 }
 
+func GetOneDataHotels(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	restorandata := new(Hotel)
+	resp.Status = false
+
+	err := json.NewDecoder(r.Body).Decode(&restorandata)
+
+	nomorID := r.URL.Query().Get("nomorid")
+	if nomorID == "" {
+		resp.Message = "Missing 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := strconv.Atoi(nomorID)
+	if err != nil {
+		resp.Message = "Invalid 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	restorandata.Nomorid = ID // Gunakan casing yang sesuai
+
+	// Menggunakan fungsi GetHotelFromIDs untuk mendapatkan data produk berdasarkan NomorID
+	restoranData, err := GetHotelFromIDs(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Datah = []Hotel{*restoranData}
+
+	return GCFReturnStruct(resp)
+}
+
 // <--- ini restoran --->
 
 // restoran post
@@ -939,6 +1047,42 @@ func GCFGetAllRestoranID(MONGOCONNSTRINGENV, dbname, collectionname string, r *h
 	} else {
 		return GCFReturnStruct(CreateResponse(false, "Failed to Get ID Restoran", datarestoran))
 	}
+}
+
+func GetOneDataRestorans(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	restorandata := new(Restoran)
+	resp.Status = false
+
+	err := json.NewDecoder(r.Body).Decode(&restorandata)
+
+	nomorID := r.URL.Query().Get("nomorid")
+	if nomorID == "" {
+		resp.Message = "Missing 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := strconv.Atoi(nomorID)
+	if err != nil {
+		resp.Message = "Invalid 'nomorid' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	restorandata.Nomorid = ID // Gunakan casing yang sesuai
+
+	// Menggunakan fungsi GetRestoranFromIDs untuk mendapatkan data produk berdasarkan NomorID
+	restoranData, err := GetRestoranFromIDs(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Datar = []Restoran{*restoranData}
+
+	return GCFReturnStruct(resp)
 }
 
 // <--- ini about --->
@@ -1395,13 +1539,13 @@ func GCFGetAllKesimpulanID(MONGOCONNSTRINGENV, dbname, collectionname string, r 
 	}
 }
 
-func GetOneDataCatalogs(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func GetOneDataKesimpulans(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	resp := new(Credential)
-	catalogdata := new(Catalog)
+	kesimpulandata := new(Kesimpulan)
 	resp.Status = false
 
-	err := json.NewDecoder(r.Body).Decode(&catalogdata)
+	err := json.NewDecoder(r.Body).Decode(&kesimpulandata)
 
 	nomorID := r.URL.Query().Get("nomorid")
 	if nomorID == "" {
@@ -1415,10 +1559,10 @@ func GetOneDataCatalogs(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 		return GCFReturnStruct(resp)
 	}
 
-	catalogdata.Nomorid = ID // Gunakan casing yang sesuai
+	kesimpulandata.Nomorid = ID // Gunakan casing yang sesuai
 
-	// Menggunakan fungsi GetCatalogFromIDs untuk mendapatkan data produk berdasarkan NomorID
-	catalogData, err := GetCatalogFromIDs(mconn, collectionname, ID)
+	// Menggunakan fungsi GetKesimpulanFromIDs untuk mendapatkan data produk berdasarkan NomorID
+	kesimpulanData, err := GetKesimpulanFromIDs(mconn, collectionname, ID)
 	if err != nil {
 		resp.Message = err.Error()
 		return GCFReturnStruct(resp)
@@ -1426,7 +1570,7 @@ func GetOneDataCatalogs(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 
 	resp.Status = true
 	resp.Message = "Get Data Berhasil"
-	resp.Data = []Catalog{*catalogData}
+	resp.Datak = []Kesimpulan{*kesimpulanData}
 
 	return GCFReturnStruct(resp)
 }

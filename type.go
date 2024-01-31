@@ -17,10 +17,14 @@ type Admin struct {
 }
 
 type Credential struct {
-	Status  bool      `json:"status" bson:"status"`
-	Token   string    `json:"token,omitempty" bson:"token,omitempty"`
-	Message string    `json:"message,omitempty" bson:"message,omitempty"`
-	Data    []Catalog `bson:"data,omitempty" json:"data,omitempty"`
+	Status  bool         `json:"status" bson:"status"`
+	Token   string       `json:"token,omitempty" bson:"token,omitempty"`
+	Message string       `json:"message,omitempty" bson:"message,omitempty"`
+	Data    []Catalog    `bson:"data,omitempty" json:"data,omitempty"`
+	Datak   []Kesimpulan `bson:"datak,omitempty" json:"datak,omitempty"`
+	Dataw   []Wisata     `bson:"dataw,omitempty" json:"dataw,omitempty"`
+	Datar   []Restoran   `bson:"datar,omitempty" json:"datar,omitempty"`
+	Datah   []Hotel      `bson:"datah,omitempty" json:"datah,omitempty"`
 }
 
 type Response struct {

@@ -208,6 +208,23 @@ func GetAllWisataID(mongoconn *mongo.Database, collection string, wisatadata Wis
 	return wisataID
 }
 
+func GetWisataFromIDs(db *mongo.Database, col string, _id int) (*Wisata, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"nomorid": _id}
+
+	wisatalist := new(Wisata)
+
+	err := cols.FindOne(context.Background(), filter).Decode(wisatalist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %d", _id)
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %d: %s", _id, err.Error())
+	}
+
+	return wisatalist, nil
+}
+
 func GetCatalogFromID(db *mongo.Database, col string, _id primitive.ObjectID) (*Catalog, error) {
 	cols := db.Collection(col)
 	filter := bson.M{"_id": _id}
@@ -279,6 +296,23 @@ func GetAllHotelID(mongoconn *mongo.Database, collection string, hoteldata Hotel
 	return hotelID
 }
 
+func GetHotelFromIDs(db *mongo.Database, col string, _id int) (*Hotel, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"nomorid": _id}
+
+	hotellist := new(Hotel)
+
+	err := cols.FindOne(context.Background(), filter).Decode(hotellist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %d", _id)
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %d: %s", _id, err.Error())
+	}
+
+	return hotellist, nil
+}
+
 // restoran function
 func insertRestoran(mongoconn *mongo.Database, collection string, restorandata Restoran) interface{} {
 	return atdb.InsertOneDoc(mongoconn, collection, restorandata)
@@ -314,6 +348,23 @@ func GetAllRestoranID(mongoconn *mongo.Database, collection string, restorandata
 	}
 	restoranID := atdb.GetOneDoc[Restoran](mongoconn, collection, filter)
 	return restoranID
+}
+
+func GetRestoranFromIDs(db *mongo.Database, col string, _id int) (*Restoran, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"nomorid": _id}
+
+	restoranlist := new(Restoran)
+
+	err := cols.FindOne(context.Background(), filter).Decode(restoranlist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %d", _id)
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %d: %s", _id, err.Error())
+	}
+
+	return restoranlist, nil
 }
 
 // about function
@@ -398,4 +449,21 @@ func GetAllKesimpulanID(mongoconn *mongo.Database, collection string, kesimpulan
 	}
 	kesimpulanID := atdb.GetOneDoc[Kesimpulan](mongoconn, collection, filter)
 	return kesimpulanID
+}
+
+func GetKesimpulanFromIDs(db *mongo.Database, col string, _id int) (*Kesimpulan, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"nomorid": _id}
+
+	kesimpulanlist := new(Kesimpulan)
+
+	err := cols.FindOne(context.Background(), filter).Decode(kesimpulanlist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %d", _id)
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %d: %s", _id, err.Error())
+	}
+
+	return kesimpulanlist, nil
 }
