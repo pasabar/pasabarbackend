@@ -613,6 +613,41 @@ func GetOneDataWisatas(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	return GCFReturnStruct(resp)
 }
 
+func GetOneDataWisata(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	wisatadata := new(Wisata)
+	resp.Status = false
+	err := json.NewDecoder(r.Body).Decode(&wisatadata)
+
+	id := r.URL.Query().Get("_id")
+	if id == "" {
+		resp.Message = "Missing '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		resp.Message = "Invalid '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	wisatadata.ID = ID
+
+	// Menggunakan fungsi GetProdukFromID untuk mendapatkan data produk berdasarkan ID
+	wisatadata, err = GetWisataFromID(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Dataw = []Wisata{*wisatadata}
+
+	return GCFReturnStruct(resp)
+}
+
 // <--- ini hotel --->
 
 // hotel post
@@ -849,6 +884,41 @@ func GetOneDataHotels(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	return GCFReturnStruct(resp)
 }
 
+func GetOneDataHotel(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	hoteldata := new(Hotel)
+	resp.Status = false
+	err := json.NewDecoder(r.Body).Decode(&hoteldata)
+
+	id := r.URL.Query().Get("_id")
+	if id == "" {
+		resp.Message = "Missing '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		resp.Message = "Invalid '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	hoteldata.ID = ID
+
+	// Menggunakan fungsi GetProdukFromID untuk mendapatkan data produk berdasarkan ID
+	hoteldata, err = GetHotelFromID(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Datah = []Hotel{*hoteldata}
+
+	return GCFReturnStruct(resp)
+}
+
 // <--- ini restoran --->
 
 // restoran post
@@ -1081,6 +1151,41 @@ func GetOneDataRestorans(MONGOCONNSTRINGENV, dbname, collectionname string, r *h
 	resp.Status = true
 	resp.Message = "Get Data Berhasil"
 	resp.Datar = []Restoran{*restoranData}
+
+	return GCFReturnStruct(resp)
+}
+
+func GetOneDataRestoran(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	restorandata := new(Restoran)
+	resp.Status = false
+	err := json.NewDecoder(r.Body).Decode(&restorandata)
+
+	id := r.URL.Query().Get("_id")
+	if id == "" {
+		resp.Message = "Missing '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		resp.Message = "Invalid '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	restorandata.ID = ID
+
+	// Menggunakan fungsi GetProdukFromID untuk mendapatkan data produk berdasarkan ID
+	restorandata, err = GetRestoranFromID(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Datar = []Restoran{*restorandata}
 
 	return GCFReturnStruct(resp)
 }
@@ -1571,6 +1676,40 @@ func GetOneDataKesimpulans(MONGOCONNSTRINGENV, dbname, collectionname string, r 
 	resp.Status = true
 	resp.Message = "Get Data Berhasil"
 	resp.Datak = []Kesimpulan{*kesimpulanData}
+
+	return GCFReturnStruct(resp)
+}
+func GetOneDataKesimpulan(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	resp := new(Credential)
+	kesimpulandata := new(Kesimpulan)
+	resp.Status = false
+	err := json.NewDecoder(r.Body).Decode(&kesimpulandata)
+
+	id := r.URL.Query().Get("_id")
+	if id == "" {
+		resp.Message = "Missing '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	ID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		resp.Message = "Invalid '_id' parameter in the URL"
+		return GCFReturnStruct(resp)
+	}
+
+	kesimpulandata.ID = ID
+
+	// Menggunakan fungsi GetProdukFromID untuk mendapatkan data produk berdasarkan ID
+	kesimpulandata, err = GetKesimpulanFromID(mconn, collectionname, ID)
+	if err != nil {
+		resp.Message = err.Error()
+		return GCFReturnStruct(resp)
+	}
+
+	resp.Status = true
+	resp.Message = "Get Data Berhasil"
+	resp.Datak = []Kesimpulan{*kesimpulandata}
 
 	return GCFReturnStruct(resp)
 }

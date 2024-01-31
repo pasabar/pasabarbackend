@@ -208,6 +208,23 @@ func GetAllWisataID(mongoconn *mongo.Database, collection string, wisatadata Wis
 	return wisataID
 }
 
+func GetWisataFromID(db *mongo.Database, col string, _id primitive.ObjectID) (*Wisata, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"_id": _id}
+
+	wisatalist := new(Wisata)
+
+	err := cols.FindOne(context.Background(), filter).Decode(wisatalist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %s", _id.Hex())
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %s: %s", _id.Hex(), err.Error())
+	}
+
+	return wisatalist, nil
+}
+
 func GetWisataFromIDs(db *mongo.Database, col string, _id int) (*Wisata, error) {
 	cols := db.Collection(col)
 	filter := bson.M{"nomorid": _id}
@@ -313,6 +330,23 @@ func GetHotelFromIDs(db *mongo.Database, col string, _id int) (*Hotel, error) {
 	return hotellist, nil
 }
 
+func GetHotelFromID(db *mongo.Database, col string, _id primitive.ObjectID) (*Hotel, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"_id": _id}
+
+	hotellist := new(Hotel)
+
+	err := cols.FindOne(context.Background(), filter).Decode(hotellist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %s", _id.Hex())
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %s: %s", _id.Hex(), err.Error())
+	}
+
+	return hotellist, nil
+}
+
 // restoran function
 func insertRestoran(mongoconn *mongo.Database, collection string, restorandata Restoran) interface{} {
 	return atdb.InsertOneDoc(mongoconn, collection, restorandata)
@@ -362,6 +396,23 @@ func GetRestoranFromIDs(db *mongo.Database, col string, _id int) (*Restoran, err
 			return nil, fmt.Errorf("no data found for ID %d", _id)
 		}
 		return nil, fmt.Errorf("error retrieving data for ID %d: %s", _id, err.Error())
+	}
+
+	return restoranlist, nil
+}
+
+func GetRestoranFromID(db *mongo.Database, col string, _id primitive.ObjectID) (*Restoran, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"_id": _id}
+
+	restoranlist := new(Restoran)
+
+	err := cols.FindOne(context.Background(), filter).Decode(restoranlist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %s", _id.Hex())
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %s: %s", _id.Hex(), err.Error())
 	}
 
 	return restoranlist, nil
@@ -463,6 +514,23 @@ func GetKesimpulanFromIDs(db *mongo.Database, col string, _id int) (*Kesimpulan,
 			return nil, fmt.Errorf("no data found for ID %d", _id)
 		}
 		return nil, fmt.Errorf("error retrieving data for ID %d: %s", _id, err.Error())
+	}
+
+	return kesimpulanlist, nil
+}
+
+func GetKesimpulanFromID(db *mongo.Database, col string, _id primitive.ObjectID) (*Kesimpulan, error) {
+	cols := db.Collection(col)
+	filter := bson.M{"_id": _id}
+
+	kesimpulanlist := new(Kesimpulan)
+
+	err := cols.FindOne(context.Background(), filter).Decode(kesimpulanlist)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("no data found for ID %s", _id.Hex())
+		}
+		return nil, fmt.Errorf("error retrieving data for ID %s: %s", _id.Hex(), err.Error())
 	}
 
 	return kesimpulanlist, nil
